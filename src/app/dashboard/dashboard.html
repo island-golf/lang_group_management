@@ -1,0 +1,45 @@
+<!-- Main content -->
+<div class="flex-1 flex flex-col">
+  <!-- Top Navbar -->
+  <header class="bg-white shadow px-4 py-3 flex justify-between items-center">
+    <h1 class="text-xl font-semibold">Dashboard</h1>
+<!--    <button mat-button color="primary">Logout</button>-->
+  </header>
+
+  <!-- Page Content -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <mat-card class="p-4">
+      <h3 class="text-lg font-bold">Card 1</h3>
+      <p>Some quick info.</p>
+    </mat-card>
+
+    <mat-card class="p-4">
+      <h3 class="text-lg font-bold">Card 2</h3>
+      <p>More details here.</p>
+    </mat-card>
+
+    <mat-card class="p-4">
+      <h3 class="text-lg font-bold">Card 3</h3>
+      <p>Analytics data.</p>
+    </mat-card>
+  </div>
+
+  <!-- Form -->
+  <section class="mt-10 max-w-lg">
+    <mat-card class="p-6">
+      <form class="space-y-4">
+        <mat-form-field class="w-full">
+          <mat-label>ชื่อ</mat-label>
+          <input matInput placeholder="กรอกชื่อ"/>
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>อีเมล</mat-label>
+          <input matInput type="email" placeholder="กรอกอีเมล"/>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" class="w-full">บันทึก</button>
+      </form>
+    </mat-card>
+  </section>
+</div>

@@ -1,0 +1,45 @@
+<div class="flex-1 flex flex-col">
+  <header
+    class="bg-gradient-to-l from-red-700 via-red-500 to-red-300 shadow px-4 py-6 flex flex-col items-start rounded">
+    <h1 class="text-xl font-semibold">ระบบนับสต็อกข้าวแกงยายแลง</h1>
+    <h3 class="text-lg font-bold text-red-700">Kaokang Inventory</h3>
+  </header>
+  <section class="mt-10 max-w-sm">
+    <mat-card class="p-6">
+      <div class="flex flex-row items-start">
+        <h3 class="text-lg mb-4">รายการวันที่ : &nbsp;</h3>
+        <h3 class="text-lg mb-4 !text-red-700 font-semibold">{{ getThaiDate() }}</h3>
+      </div>
+      <form [formGroup]="formGroup" (ngSubmit)="submit()">
+        <div formArrayName="inventories">
+          @for (inv of inventories.controls; track inv.value.tran_id) {
+            <div [formGroupName]="inventories.controls.indexOf(inv)" class="inventory-item">
+              <mat-form-field appearance="fill" class="w-full">
+                <mat-label>{{ inv.value.desc }}</mat-label>
+                <input matInput formControlName="amount" type="number" [readonly]="isReadonly">
+              </mat-form-field>
+              <!--              <button mat-raised-button color="warn" type="button" (click)="removeInventory(inventories.controls.indexOf(inv))">-->
+              <!--                Remove-->
+              <!--              </button>-->
+              <!--              <mat-divider></mat-divider>-->
+            </div>
+          }
+        </div>
+
+        <!--        <button mat-raised-button color="primary" type="button" (click)="addInventory()">-->
+        <!--          Add Inventory-->
+        <!--        </button>-->
+
+        <label class="text-red-700">*กรุณาตรวจสอบข้อมูลให้ดี สามารถกดบันทึกได้ครั้งเดียวต่อวัน
+          หลังจากกดบันทึกแล้วจะไม่สามารถแก้ไขได้</label>
+        <div class="flex justify-center mt-4">
+          <button mat-raised-button color="accent" type="submit"
+                  class="w-full hover:!bg-white hover:!text-black !bg-blue-500 !text-white disabled:!bg-gray-400 disabled:cursor-not-allowed"
+                  [disabled]="isReadonly">
+            บันทึก
+          </button>
+        </div>
+      </form>
+    </mat-card>
+  </section>
+</div>
