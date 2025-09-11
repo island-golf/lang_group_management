@@ -1,0 +1,17 @@
+
+<div class="container">
+  <h1>✅ My Supabase Todos</h1>
+
+  <input [(ngModel)]="newTask" placeholder="Add a task..." />
+  <button (click)="addTodo()">Add</button>
+
+  <ul>
+    <li *ngFor="let todo of todos">
+      <input type="checkbox" [checked]="todo.done" (change)="toggleDone(todo)" />
+      <span [style.text-decoration]="todo.done ? 'line-through' : 'none'">
+        {{ todo.task }}
+      </span>
+      <button (click)="deleteTodo(todo.id)">❌</button>
+    </li>
+  </ul>
+</div>
