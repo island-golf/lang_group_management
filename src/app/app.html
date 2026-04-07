@@ -1,35 +1,67 @@
 <div class="flex min-h-screen">
+  <!-- Sidebar Overlay -->
+  <div
+    *ngIf="sidebarOpen"
+    (click)="sidebarOpen = false"
+    class="fixed inset-0 bg-black/50 z-40 transition-opacity"></div>
+
   <!-- Sidebar -->
   <aside
-    [class.hidden]="!sidebarOpen"
-    class="w-64 bg-gray-800 text-white p-4 hidden md:block">
-    <h2 class="text-xl font-bold">Lang Group Co., LTD.</h2>
-    <h3 class="text-l mb-6 text-gray-300">แลงกรุ๊ป จำกัด.</h3>
+    class="w-64 md:w-72 lg:w-80 bg-white/10 backdrop-blur-lg text-white p-4 md:p-6 fixed md:static shadow-2xl border-r border-white/20 dark:bg-black/20 h-screen md:h-auto overflow-y-auto z-50 md:z-auto"
+    [style.transform]="isMobileMode() ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)'"
+    [style.transition]="'transform 0.3s ease-in-out'">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-2xl font-bold">Lang Group Co., LTD.</h2>
+        <h3 class="text-lg text-red-100">แลงกรุ๊ป จำกัด.</h3>
+      </div>
+      <!-- Close button (Mobile only) -->
+      <button *ngIf="isMobileMode()" (click)="sidebarOpen = false" class="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
     <nav>
-      <ul class="space-y-2">
-        <li><a routerLink="/" class="block p-2 rounded hover:bg-gray-700">🏠 Home</a></li>
-        <li><a routerLink="/dashboard" class="block p-2 rounded hover:bg-gray-700">⚙️ Dashboard</a></li>
-        <li><a routerLink="/kaokang-inventory" class="block p-2 rounded hover:bg-gray-700">📊 Kaokang</a></li>
+      <ul class="space-y-3">
+        <li><a routerLink="/" class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
+            <span>🏠</span><span>Home</span></a></li>
+        <li><a routerLink="/dashboard" class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
+            <span>⚙️</span><span>Dashboard</span></a></li>
+        <li><a routerLink="/kaokang-inventory" class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
+            <span>📊</span><span>Kaokang</span></a></li>
+        <li><a routerLink="/kaokang-inventory-summary" class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
+            <span>📋</span><span>Kaokang Summary</span></a></li>
       </ul>
     </nav>
+    <!-- Dark Mode Toggle -->
+    <div class="mt-8">
+      <button (click)="toggleDarkMode()" class="w-full p-3 rounded-lg bg-white/20 hover:bg-white/30 transition-all duration-300 flex items-center justify-center space-x-2">
+        <span>{{ isDarkMode() ? '☀️' : '🌙' }}</span>
+        <span>{{ isDarkMode() ? 'Light Mode' : 'Dark Mode' }}</span>
+      </button>
+    </div>
   </aside>
 
   <!-- Content -->
   <div class="flex-1 flex flex-col">
     <!-- Top bar -->
-    <header class="bg-gray-100 p-4 flex items-center md:hidden">
-      <button (click)="sidebarOpen = !sidebarOpen" class="text-gray-800">
+    <header class="bg-white/10 backdrop-blur-lg p-4 flex items-center shadow-lg border-b border-white/20 dark:bg-black/20" [class.md:hidden]="!isMobileMode()">
+      <button (click)="sidebarOpen = !sidebarOpen" class="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
         <!-- Hamburger icon -->
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
       </button>
-      <h1 class="ml-4 font-bold text-lg">แลงกรุ๊ป จำกัด</h1>
+      <h1 class="ml-4 font-bold text-xl text-white">แลงกรุ๊ป จำกัด</h1>
+      <button (click)="toggleDarkMode()" class="ml-auto text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
+        <span>{{ isDarkMode() ? '☀️' : '🌙' }}</span>
+      </button>
     </header>
 
     <!-- Main content -->
-    <main class="p-6">
+    <main class="p-4 sm:p-6 md:p-8 flex-1">
       <router-outlet></router-outlet>
     </main>
   </div>

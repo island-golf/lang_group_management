@@ -1,22 +1,16 @@
 import {Component, OnInit} from '@angular/core';
 import {MatButton} from '@angular/material/button';
 import {MatCard} from '@angular/material/card';
-import {MatFormField} from '@angular/material/form-field';
-import {MatInput, MatLabel} from '@angular/material/input';
+import {MatInput} from '@angular/material/input';
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import {InventoryInsertModel, InventoryModel, MasterInventory} from './kaokang-inventory.model';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {MatDivider} from '@angular/material/divider';
 
 @Component({
   selector: 'app-kaokang-inventory',
   imports: [
     MatButton,
     MatCard,
-    MatFormField,
-    MatInput,
-    MatLabel,
-    // MatDivider,
     ReactiveFormsModule
   ],
   templateUrl: './kaokang-inventory.html',
@@ -28,13 +22,14 @@ export class KaokangInventory implements OnInit {
   fb: FormBuilder;
   formGroup!: FormGroup;
   isReadonly = false;
+  showSuccess = false;
 
   masterInventory: InventoryModel[] = [];
 
   constructor() {
     this.supabase = createClient(
-      'https://wqvdzicazdozhcojkgaz.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxdmR6aWNhemRvemhjb2prZ2F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MDE1NTUsImV4cCI6MjA3MzA3NzU1NX0.zvuFQ7u6xCT1qGqNyBV1Tdg28A7EfiUcKZ53Xam_6OM'
+      'https://batxjgnynvnykoingkij.supabase.co',
+      'sb_publishable_UtUV7xSJeNC44WeOprBeDg_8tDWXA1w'
     );
     this.fb = new FormBuilder;
   }
@@ -60,7 +55,7 @@ export class KaokangInventory implements OnInit {
       .from<'M_INVENTORY', MasterInventory>('M_INVENTORY') // ✅ T = table name, R = row type
       .select(`
     ID,
-    DESC
+    ITEM_DESC
   `);
     console.log(data);
     if (error) throw error;
@@ -71,7 +66,7 @@ export class KaokangInventory implements OnInit {
           tran_id: [],
           amount: [0],
           master_id: [inv.ID],
-          desc: [inv.DESC]
+          item_desc: [inv.ITEM_DESC]
         }));
       });
     }
@@ -111,8 +106,10 @@ export class KaokangInventory implements OnInit {
 
     // ส่งกลับ Supabase ตามต้องการ
     this.insertTInventory(inventoryInsertData).then(r => {
-      if (r) {
-        console.log('Failed to insert data:');
+      if (!r) {
+        this.isReadonly = true;
+        this.showSuccess = true;
+        setTimeout(() => this.showSuccess = false, 2000);
       }
     });
   }
@@ -147,7 +144,7 @@ export class KaokangInventory implements OnInit {
         tran_id: [null],
         amount: [null, Validators.required],
         master_id: [null],
-        desc: ['', Validators.required]
+        item_desc: ['', Validators.required]
       })
     );
   }

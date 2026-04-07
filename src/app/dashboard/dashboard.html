@@ -1,33 +1,55 @@
 <!-- Main content -->
-<div class="flex-1 flex flex-col">
+<div class="flex-1 flex flex-col fade-in">
   <!-- Top Navbar -->
-  <header class="bg-white shadow px-4 py-3 flex justify-between items-center">
-    <h1 class="text-xl font-semibold">Dashboard</h1>
+  <header class="bg-white/20 backdrop-blur-lg shadow-xl px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center rounded-b-2xl border-b border-white/30">
+    <h1 class="text-xl sm:text-2xl font-bold text-white">Dashboard</h1>
 <!--    <button mat-button color="primary">Logout</button>-->
   </header>
 
   <!-- Page Content -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <mat-card class="p-4">
-      <h3 class="text-lg font-bold">Card 1</h3>
-      <p>Some quick info.</p>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mt-6 sm:mt-8">
+    <mat-card class="p-4 sm:p-6 hover:scale-105 transition-transform duration-300 cursor-pointer">
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center">
+          <span class="text-white text-lg sm:text-xl">📈</span>
+        </div>
+        <div>
+          <h3 class="text-lg sm:text-xl font-bold text-white">Card 1</h3>
+          <p class="text-gray-600 text-sm sm:text-base text-gray-300">Some quick info.</p>
+        </div>
+      </div>
     </mat-card>
 
-    <mat-card class="p-4">
-      <h3 class="text-lg font-bold">Card 2</h3>
-      <p>More details here.</p>
+    <mat-card class="p-4 sm:p-6 hover:scale-105 transition-transform duration-300 cursor-pointer">
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-red-400 to-red-500 rounded-full flex items-center justify-center">
+          <span class="text-white text-lg sm:text-xl">📊</span>
+        </div>
+        <div>
+          <h3 class="text-lg sm:text-xl font-bold text-white">Card 2</h3>
+          <p class="text-gray-600 text-sm sm:text-base text-gray-300">More details here.</p>
+        </div>
+      </div>
     </mat-card>
 
-    <mat-card class="p-4">
-      <h3 class="text-lg font-bold">Card 3</h3>
-      <p>Analytics data.</p>
+    <mat-card class="p-4 sm:p-6 hover:scale-105 transition-transform duration-300 cursor-pointer">
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-red-600 to-red-700 rounded-full flex items-center justify-center">
+          <span class="text-white text-lg sm:text-xl">🔥</span>
+        </div>
+        <div>
+          <h3 class="text-lg sm:text-xl font-bold text-white">Card 3</h3>
+          <p class="text-gray-600 text-sm sm:text-base text-gray-300">Analytics data.</p>
+        </div>
+      </div>
     </mat-card>
   </div>
 
   <!-- Form -->
-  <section class="mt-10 max-w-lg">
-    <mat-card class="p-6">
-      <form class="space-y-4">
+  <section class="mt-8 sm:mt-12 max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-4 sm:px-0">
+    <mat-card class="p-6 sm:p-8">
+      <h2 class="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6 text-white">แบบฟอร์ม</h2>
+      <form class="space-y-4 sm:space-y-6">
         <mat-form-field class="w-full">
           <mat-label>ชื่อ</mat-label>
           <input matInput placeholder="กรอกชื่อ"/>
@@ -38,7 +60,7 @@
           <input matInput type="email" placeholder="กรอกอีเมล"/>
         </mat-form-field>
 
-        <button mat-raised-button color="primary" class="w-full">บันทึก</button>
+        <button mat-raised-button color="primary" class="w-full py-3 text-base sm:text-lg font-semibold hover:scale-105 transition-transform duration-300">บันทึก</button>
       </form>
     </mat-card>
   </section>

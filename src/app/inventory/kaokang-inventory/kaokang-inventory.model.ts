@@ -6,7 +6,24 @@ export interface InventoryModel {
 
 export interface MasterInventory {
   ID: number;
-  DESC: string;
+  ITEM_DESC: string;
+  DEFAULT_AMOUNT: number;
+  UNIT: string;
+  VENDOR_GROUP: string;
+}
+
+export interface SummaryItem {
+  master_id: number;
+  item_desc: string;
+  default_amount: number;
+  actual_amount: number;
+  unit: string;
+  vendor_group: string;
+}
+
+export interface SummaryGroup {
+  vendor_group: string;
+  items: SummaryItem[];
 }
 
 export interface InventoryInsertModel {
