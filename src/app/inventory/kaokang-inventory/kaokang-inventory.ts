@@ -52,11 +52,11 @@ export class KaokangInventory implements OnInit {
 
   async getMasterInventory() {
     const {data, error} = await this.supabase
-      .from<'M_INVENTORY', MasterInventory>('M_INVENTORY') // ✅ T = table name, R = row type
+      .from('M_INVENTORY') // ✅ T = table name, R = row type
       .select(`
     ID,
     ITEM_DESC
-  `);
+  `).eq('IS_ACTIVE_YN', 'Y').order('SEQ');
     console.log(data);
     if (error) throw error;
 

@@ -1,4 +1,10 @@
-<div class="flex min-h-screen">
+<!-- Login page: full screen without sidebar -->
+<ng-container *ngIf="isLoginRoute()">
+  <router-outlet></router-outlet>
+</ng-container>
+
+<!-- Main layout with sidebar -->
+<div *ngIf="!isLoginRoute()" class="flex min-h-screen">
   <!-- Sidebar Overlay -->
   <div
     *ngIf="sidebarOpen"
@@ -24,7 +30,7 @@
     </div>
     <nav>
       <ul class="space-y-3">
-        <li><a routerLink="/" class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
+        <li><a routerLink="/dashboard" class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
             <span>🏠</span><span>Home</span></a></li>
         <li><a routerLink="/dashboard" class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
             <span>⚙️</span><span>Dashboard</span></a></li>
@@ -34,11 +40,25 @@
             <span>📋</span><span>Kaokang Summary</span></a></li>
       </ul>
     </nav>
-    <!-- Dark Mode Toggle -->
-    <div class="mt-8">
+
+    <!-- User info -->
+    <div class="mt-auto pt-6 border-t border-white/20 space-y-3" style="margin-top: 2rem">
+      <div *ngIf="auth.currentUser()" class="px-3 py-2 rounded-lg bg-white/10 text-sm">
+        <p class="text-blue-200 text-xs">ผู้ใช้งาน</p>
+        <p class="text-white font-medium truncate">{{ auth.currentUser()?.USERNAME }}</p>
+      </div>
+      <!-- Dark Mode Toggle -->
       <button (click)="toggleDarkMode()" class="w-full p-3 rounded-lg bg-white/20 hover:bg-white/30 transition-all duration-300 flex items-center justify-center space-x-2">
         <span>{{ isDarkMode() ? '☀️' : '🌙' }}</span>
         <span>{{ isDarkMode() ? 'Light Mode' : 'Dark Mode' }}</span>
+      </button>
+      <!-- Logout -->
+      <button (click)="auth.logout()" class="w-full p-3 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-200 hover:text-white transition-all duration-300 flex items-center justify-center space-x-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        <span>ออกจากระบบ</span>
       </button>
     </div>
   </aside>
@@ -48,7 +68,6 @@
     <!-- Top bar -->
     <header class="bg-white/10 backdrop-blur-lg p-4 flex items-center shadow-lg border-b border-white/20 dark:bg-black/20" [class.md:hidden]="!isMobileMode()">
       <button (click)="sidebarOpen = !sidebarOpen" class="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
-        <!-- Hamburger icon -->
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 6h16M4 12h16M4 18h16"></path>

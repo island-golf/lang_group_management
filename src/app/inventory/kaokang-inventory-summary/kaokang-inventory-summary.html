@@ -2,7 +2,7 @@
   <header
     class="bg-gradient-to-r from-red-600 via-red-500 to-red-400 shadow-2xl px-4 sm:px-6 py-6 sm:py-8 flex flex-col items-start rounded-2xl text-white">
     <h1 class="text-2xl sm:text-3xl font-bold mb-2">สรุปสต็อกข้าวแกงยายแลง</h1>
-    <h3 class="text-lg sm:text-xl font-semibold text-red-200">วันที่ {{ getThaiDate() }}</h3>
+    <h3 class="text-lg sm:text-xl font-semibold text-red-200">วันที่ {{ displayDate }}</h3>
   </header>
 
   @if (isLoading) {
@@ -19,31 +19,31 @@
   } @else {
 
     <!-- Section 1: รายการที่ต่ำกว่าเกณฑ์ -->
-    <section class="mt-8 sm:mt-10 max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-4 sm:px-0 w-full">
-      <h2 class="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">รายการที่ต่ำกว่าเกณฑ์</h2>
-      @for (group of summaryGroups; track group.vendor_group) {
-        <div class="mb-6">
-          <h3 class="text-sm font-semibold text-red-300 uppercase tracking-wide mb-3">{{ group.vendor_group }}</h3>
-          <div class="space-y-3">
-            @for (item of group.items; track item.master_id) {
-              <div class="bg-white/10 backdrop-blur-lg border border-red-400/40 rounded-xl p-4 sm:p-5 flex items-center justify-between gap-4">
-                <div class="flex flex-col gap-1">
-                  <span class="text-white font-semibold text-base sm:text-lg">{{ item.item_desc }}</span>
-                  <span class="text-red-300 text-sm">ขั้นต่ำ: {{ item.default_amount }} {{ item.unit }}</span>
-                </div>
-                <div class="flex flex-col items-end gap-1">
-                  <span class="text-2xl font-bold"
-                    [ngClass]="item.actual_amount === 0 ? 'text-red-400' : 'text-yellow-400'">
-                    {{ item.actual_amount }}
-                  </span>
-                  <span class="text-xs text-gray-400">จำนวนจริง</span>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      }
-    </section>
+<!--    <section class="mt-8 sm:mt-10 max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-4 sm:px-0 w-full">-->
+<!--      <h2 class="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">รายการที่ต่ำกว่าเกณฑ์</h2>-->
+<!--      @for (group of summaryGroups; track group.vendor_group) {-->
+<!--        <div class="mb-6">-->
+<!--          <h3 class="text-sm font-semibold text-red-300 uppercase tracking-wide mb-3">{{ group.vendor_group }}</h3>-->
+<!--          <div class="space-y-3">-->
+<!--            @for (item of group.items; track item.master_id) {-->
+<!--              <div class="bg-white/10 backdrop-blur-lg border border-red-400/40 rounded-xl p-4 sm:p-5 flex items-center justify-between gap-4">-->
+<!--                <div class="flex flex-col gap-1">-->
+<!--                  <span class="text-white font-semibold text-base sm:text-lg">{{ item.item_desc }}</span>-->
+<!--                  <span class="text-red-300 text-sm">ขั้นต่ำ: {{ item.default_amount }} {{ item.unit }}</span>-->
+<!--                </div>-->
+<!--                <div class="flex flex-col items-end gap-1">-->
+<!--                  <span class="text-2xl font-bold"-->
+<!--                    [ngClass]="item.actual_amount === 0 ? 'text-red-400' : 'text-yellow-400'">-->
+<!--                    {{ item.actual_amount }}-->
+<!--                  </span>-->
+<!--                  <span class="text-xs text-gray-400">จำนวนจริง</span>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            }-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      }-->
+<!--    </section>-->
 
     <!-- Section 2: รายการที่ต้องสั่งเพิ่ม -->
     <section class="mt-8 sm:mt-10 max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-4 sm:px-0 w-full pb-10">
@@ -54,7 +54,6 @@
           <div class="bg-white/10 backdrop-blur-lg border border-orange-400/40 rounded-xl p-4 sm:p-6 space-y-3">
             @for (item of group.items; track item.master_id) {
               <div class="flex items-center gap-3">
-                <span class="text-orange-300 text-lg">•</span>
                 <span class="text-white text-base sm:text-lg">
                   {{ item.item_desc }}
                   <span class="font-bold text-orange-300"> {{ item.default_amount - item.actual_amount }} {{ item.unit }}</span>
