@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
-import {MasterInventory, SummaryGroup, SummaryItem} from '../kaokang-inventory/kaokang-inventory.model';
-import {NgClass} from '@angular/common';
+import {SummaryGroup, SummaryItem} from '../kaokang-inventory/kaokang-inventory.model';
 
 @Component({
   selector: 'app-kaokang-inventory-summary',
@@ -15,6 +14,7 @@ export class KaokangInventorySummary implements OnInit {
   summaryGroups: SummaryGroup[] = [];
   isLoading = true;
   displayDate: string = '';
+  lastUpdatedText: string = 'ยังไม่เคยอัปเดต';
 
   constructor() {
     this.supabase = createClient(
@@ -89,6 +89,7 @@ export class KaokangInventorySummary implements OnInit {
       items
     }));
 
+    this.lastUpdatedText = this.getThaiDateTimeForDate(new Date());
     this.isLoading = false;
   }
 
@@ -117,5 +118,15 @@ export class KaokangInventorySummary implements OnInit {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const yearBE = date.getFullYear() + 543;
     return `${day}/${month}/${yearBE}`;
+  }
+
+  getThaiDateTimeForDate(date: Date): string {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const yearBE = date.getFullYear() + 543;
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${day}/${month}/${yearBE} เวลา ${hours}:${minutes} น.`;
   }
 }

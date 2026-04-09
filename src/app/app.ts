@@ -1,9 +1,10 @@
-import { Component, signal, HostListener, inject } from '@angular/core';
+import { Component, signal, HostListener, inject, computed } from '@angular/core';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs/operators';
 import { AuthService } from './auth/auth.service';
+import { getMenusForUser, MenuItem } from './auth/menu-permission.config';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +20,12 @@ export class AppComponent {
 
   private router = inject(Router);
   auth = inject(AuthService);
+
+  /** เมนูที่ user คนนี้มีสิทธิ์เห็น — คำนวณอัตโนมัติเมื่อ currentUser เปลี่ยน */
+  allowedMenus = computed<MenuItem[]>(() => {
+    const user = this.auth.currentUser();
+    return user ? getMenusForUser(user.USERNAME) : [];
+  });
 
   isLoginRoute = toSignal(
     this.router.events.pipe(

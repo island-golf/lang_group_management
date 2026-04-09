@@ -30,14 +30,14 @@
     </div>
     <nav>
       <ul class="space-y-3">
-        <li><a routerLink="/dashboard" class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
-            <span>🏠</span><span>Home</span></a></li>
-        <li><a routerLink="/dashboard" class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
-            <span>⚙️</span><span>Dashboard</span></a></li>
-        <li><a routerLink="/kaokang-inventory" class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
-            <span>📊</span><span>Kaokang</span></a></li>
-        <li><a routerLink="/kaokang-inventory-summary" class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
-            <span>📋</span><span>Kaokang Summary</span></a></li>
+        @for (menu of allowedMenus(); track menu.route) {
+          <li>
+            <a [routerLink]="menu.route" (click)="sidebarOpen = false"
+               class="sidebar-link p-3 rounded-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-3">
+              <span>{{ menu.icon }}</span><span>{{ menu.label }}</span>
+            </a>
+          </li>
+        }
       </ul>
     </nav>
 

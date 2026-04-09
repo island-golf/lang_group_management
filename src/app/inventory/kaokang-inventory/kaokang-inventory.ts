@@ -1,10 +1,9 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, ElementRef, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {MatButton} from '@angular/material/button';
 import {MatCard} from '@angular/material/card';
-import {MatInput} from '@angular/material/input';
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
-import {InventoryInsertModel, InventoryModel, MasterInventory} from './kaokang-inventory.model';
-import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {InventoryInsertModel} from './kaokang-inventory.model';
+import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
 
 @Component({
   selector: 'app-kaokang-inventory',
@@ -17,14 +16,14 @@ import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from
   styleUrl: './kaokang-inventory.scss'
 })
 export class KaokangInventory implements OnInit {
+  @ViewChildren('amountInput') amountInputs!: QueryList<ElementRef>;
+
   private supabase: SupabaseClient;
 
   fb: FormBuilder;
   formGroup!: FormGroup;
   isReadonly = false;
   showSuccess = false;
-
-  masterInventory: InventoryModel[] = [];
 
   constructor() {
     this.supabase = createClient(
@@ -56,7 +55,7 @@ export class KaokangInventory implements OnInit {
       .select(`
     ID,
     ITEM_DESC
-  `).eq('IS_ACTIVE_YN', 'Y').order('SEQ');
+  `).eq('IS_ACTIVE_YN', 'Y').order('ITEM_GROUP').order('SEQ');
     console.log(data);
     if (error) throw error;
 
@@ -64,7 +63,7 @@ export class KaokangInventory implements OnInit {
       data?.forEach(inv => {
         this.inventories.push(this.fb.group({
           tran_id: [],
-          amount: [0],
+          amount: [null],
           master_id: [inv.ID],
           item_desc: [inv.ITEM_DESC]
         }));
@@ -86,7 +85,7 @@ export class KaokangInventory implements OnInit {
     if (this.inventories.length > 0) {
       this.inventories.controls.forEach(group => {
         group.get('amount')?.setValue(
-          data?.find(item => item.M_INVENTORY_ID === group.get('master_id')?.value)?.AMOUNT ?? 0
+          data?.find(item => item.M_INVENTORY_ID === group.get('master_id')?.value)?.AMOUNT ?? null
         );
       });
     }
@@ -115,7 +114,7 @@ export class KaokangInventory implements OnInit {
   }
 
   async insertTInventory(inventoryInsertData: InventoryInsertModel[]) {
-    const {data, error} = await this.supabase.from('T_INVENTORY').insert(inventoryInsertData);
+    const {error} = await this.supabase.from('T_INVENTORY').insert(inventoryInsertData);
     if (error) throw error;
     return error;
   }
@@ -137,21 +136,13 @@ export class KaokangInventory implements OnInit {
     return `${year}-${month}-${day}`; // 2025-09-11
   }
 
-  // เพิ่ม inventory ใหม่
-  addInventory() {
-    this.inventories.push(
-      this.fb.group({
-        tran_id: [null],
-        amount: [null, Validators.required],
-        master_id: [null],
-        item_desc: ['', Validators.required]
-      })
-    );
-  }
-
-  // ลบ inventory
-  removeInventory(index: number) {
-    this.inventories.removeAt(index);
+  onEnterKey(event: Event, currentIndex: number) {
+    event.preventDefault();
+    const inputs = this.amountInputs.toArray();
+    const nextInput = inputs[currentIndex + 1];
+    if (nextInput) {
+      nextInput.nativeElement.focus();
+    }
   }
 
   // async getTransactionInventory() {
