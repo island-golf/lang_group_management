@@ -38,6 +38,10 @@ export class AppComponent {
 
   constructor() {
     this.updateMobileMode();
+    // Handle refresh: if user is logged in but on login page, redirect to home
+    if (this.auth.isLoggedIn() && this.router.url === '/login') {
+      this.router.navigate(['/home']);
+    }
   }
 
   @HostListener('window:resize')
