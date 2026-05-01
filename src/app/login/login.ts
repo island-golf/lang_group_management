@@ -20,7 +20,7 @@ export class Login {
     private router: Router
   ) {
     if (this.auth.isLoggedIn()) {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/home']);
     }
   }
 
@@ -34,7 +34,7 @@ export class Login {
     const result = await this.auth.login(this.username.trim());
     this.loading.set(false);
     if (result.success) {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/home']);
     } else {
       this.errorMessage.set(result.error ?? 'เกิดข้อผิดพลาด');
     }
