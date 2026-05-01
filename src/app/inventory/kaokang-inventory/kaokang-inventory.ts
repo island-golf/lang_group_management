@@ -26,6 +26,7 @@ export class KaokangInventory implements OnInit {
   fb: FormBuilder;
   formGroup!: FormGroup;
   showSuccess = false;
+  showConfirm = false;
   isLoading = false;
 
   // Properties for dynamic tabs
@@ -54,7 +55,8 @@ export class KaokangInventory implements OnInit {
 
   initForm() {
     this.formGroup = this.fb.group({
-      inventories: this.fb.array([])
+      inventories: this.fb.array([]),
+      remark: ['']
     });
   }
 
@@ -124,13 +126,45 @@ export class KaokangInventory implements OnInit {
       });
     }
 
+    // Get today's remark
+    await this.getTodayRemark();
   }
 
-  async submit() {
-    console.log(this.formGroup.value.inventories);
-    const data = this.formGroup.value.inventories;
+  async getTodayRemark() {
+    const today = this.getDate();
+    const {data, error} = await this.supabase
+      .from('T_INVENTORY_REMARK')
+      .select('REMARK')
+      .gte('CREATED_DATETIME', `${today}T00:00:00`)
+      .lte('CREATED_DATETIME', `${today}T23:59:59`)
+      .order('CREATED_DATETIME', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Error getting remark:', error);
+    }
+
+    if (data?.REMARK) {
+      this.formGroup.get('remark')?.setValue(data.REMARK);
+    }
+  }
+
+  submit() {
+    // Show confirm dialog instead of directly submitting
+    this.showConfirm = true;
+  }
+
+  async confirmSave() {
+    this.showConfirm = false;
+
+    console.log(this.formGroup.value);
+    const formData = this.formGroup.value;
+    const inventoryData = formData.inventories;
+    const remark = formData.remark || '';
     const username = this.auth.currentUser()?.USERNAME || 'unknown';
-    const inventoryInsertData: InventoryInsertModel[] = data.map((item: { master_id: any; amount: any; }) => ({
+
+    const inventoryInsertData: InventoryInsertModel[] = inventoryData.map((item: { master_id: any; amount: any; }) => ({
       M_INVENTORY_ID: item.master_id,
       AMOUNT: item.amount == null || item.amount === '' ? 0 : item.amount,
       CREATED_BY: username
@@ -139,14 +173,23 @@ export class KaokangInventory implements OnInit {
     // ส่งกลับ Supabase ตามต้องการ
     this.isLoading = true;
     try {
-      const result = await this.insertTInventory(inventoryInsertData);
-      if (!result) {
+      // Insert inventory data
+      const inventoryResult = await this.insertTInventory(inventoryInsertData);
+
+      // Upsert remark data
+      await this.upsertRemark(remark);
+
+      if (!inventoryResult) {
         this.showSuccess = true;
         setTimeout(() => this.showSuccess = false, 2000);
       }
     } finally {
       this.isLoading = false;
     }
+  }
+
+  cancelSave() {
+    this.showConfirm = false;
   }
 
   async insertTInventory(inventoryInsertData: InventoryInsertModel[]) {
@@ -171,6 +214,32 @@ export class KaokangInventory implements OnInit {
       .from('T_INVENTORY')
       .insert(dataWithDateTime);
 
+    if (insertError) throw insertError;
+    return insertError;
+  }
+
+  async upsertRemark(remark: string) {
+    const today = this.getDate();
+    const username = this.auth.currentUser()?.USERNAME || 'unknown';
+    
+    // First, delete existing records for today
+    const {error: deleteError} = await this.supabase
+      .from('T_INVENTORY_REMARK')
+      .delete()
+      .gte('CREATED_DATETIME', `${today}T00:00:00`)
+      .lte('CREATED_DATETIME', `${today}T23:59:59`);
+    
+    if (deleteError) throw deleteError;
+    
+    // Then insert new record
+    const {error: insertError} = await this.supabase
+      .from('T_INVENTORY_REMARK')
+      .insert({
+        REMARK: remark,
+        CREATED_BY: username,
+        CREATED_DATETIME: new Date().toISOString()
+      });
+    
     if (insertError) throw insertError;
     return insertError;
   }
