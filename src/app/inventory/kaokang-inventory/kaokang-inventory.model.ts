@@ -7,6 +7,7 @@ export interface InventoryModel {
 export interface MasterInventory {
   ID: number;
   ITEM_DESC: string;
+  ITEM_GROUP: string;
   DEFAULT_AMOUNT: number;
   UNIT: string;
   VENDOR_GROUP: string;

@@ -27,4 +27,37 @@
   animation: draw-check 0.4s 0.5s ease forwards;
 }
 
+/* Fix mat-tab label font */
+::ng-deep .mat-mdc-tab-label {
+  font-family: 'ekachon' !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  color: inherit !important;
+}
+
+::ng-deep .mdc-tab__text-label {
+  font-family: 'ekachon' !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+::ng-deep .mat-mdc-tab-labels {
+  font-family: 'ekachon' !important;
+}
+
+/* Disable scrolling within the section */
+section {
+  overflow: hidden !important;
+}
+
+/* Disable scrolling for mat-card content */
+mat-card {
+  overflow: hidden !important;
+}
+
+/* Disable scrolling for tab content */
+::ng-deep .mat-mdc-tab-body-content {
+  overflow: hidden !important;
+}
+
 

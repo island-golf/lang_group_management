@@ -47,7 +47,7 @@ export class SupabaseService {
     const { data, error } = await this.supabase
       .from('M_USER')
       .select('*')
-      .ilike('USERNAME', username)
+      .ilike('USERNAME', username.toLowerCase())
       .maybeSingle();
     if (error) {
       console.error('loginUser error:', error);

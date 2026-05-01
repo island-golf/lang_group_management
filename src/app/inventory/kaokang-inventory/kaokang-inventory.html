@@ -1,3 +1,13 @@
+<!-- Loading Dialog -->
+@if (isLoading) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-10 flex flex-col items-center gap-4">
+      <div class="w-16 h-16 border-4 border-red-200 border-t-red-500 rounded-full animate-spin"></div>
+      <p class="text-xl font-semibold text-gray-800 dark:text-white">กำลังโหลดข้อมูล...</p>
+    </div>
+  </div>
+}
+
 <!-- Success Dialog -->
 @if (showSuccess) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -18,41 +28,53 @@
     <h1 class="text-2xl sm:text-3xl font-bold mb-2">ระบบนับสต็อกข้าวแกงยายแลง</h1>
     <h3 class="text-lg sm:text-xl font-semibold text-red-200">Kaokang Inventory</h3>
   </header>
+
   <section class="mt-8 sm:mt-12 max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-4 sm:px-0">
     <mat-card class="p-6 sm:p-8 hover:shadow-2xl transition-shadow duration-300">
-      <div class="flex flex-col sm:flex-row items-start mb-4 sm:mb-6">
-        <h3 class="text-lg sm:text-xl mb-2 sm:mb-4">รายการวันที่ : &nbsp;</h3>
-        <h3 class="text-lg sm:text-xl mb-4 text-red-400 font-bold">{{ getThaiDate() }}</h3>
-      </div>
       <form [formGroup]="formGroup" (ngSubmit)="submit()">
-        <div formArrayName="inventories" class="space-y-3 sm:space-y-4">
-          @for (inv of inventories.controls; track inv.value.tran_id) {
-            <div [formGroupName]="inventories.controls.indexOf(inv)" class="inventory-item p-3 sm:p-4 rounded-lg transition-colors">
-              <label class="block text-sm font-medium text-gray-300 mb-2">{{ inv.value.item_desc }}</label>
-              <input
-                #amountInput
-                formControlName="amount"
-                type="number"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                [readonly]="isReadonly"
-                (keydown.enter)="onEnterKey($event, inventories.controls.indexOf(inv))"
-                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed">
-            </div>
-          }
-        </div>
+        <mat-tab-group>
+          @for (groupName of groupNames; track groupName) {
+            <mat-tab [label]="groupName">
+              <div class="pt-4">
+                <div class="flex flex-col sm:flex-row items-start mb-4 sm:mb-6">
+                  <h3 class="text-lg sm:text-xl mb-2 sm:mb-4">รายการวันที่ : &nbsp;</h3>
+                  <h3 class="text-lg sm:text-xl mb-4 text-red-400 font-bold">{{ getThaiDate() }}</h3>
+                </div>
+                <div formArrayName="inventories" class="space-y-3 sm:space-y-4">
+                  @for (inv of getInventoriesByGroup(groupName); track $index) {
+                    <div [formGroupName]="inventories.controls.indexOf(inv)" class="inventory-item p-3 sm:p-4 rounded-lg transition-colors">
+                      <label class="block text-sm font-medium text-gray-300 mb-2">{{ inv.value.item_desc }}</label>
+                      <input
+                        #amountInput
+                        formControlName="amount"
+                        type="number"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    </div>
+                  }
+                </div>
 
-        <div class="mt-6 sm:mt-8 p-3 sm:p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
-          <label class="text-yellow-800 font-medium text-sm sm:text-base">*กรุณาตรวจสอบข้อมูลให้ดี สามารถกดบันทึกได้ครั้งเดียวต่อวัน หลังจากกดบันทึกแล้วจะไม่สามารถแก้ไขได้</label>
-        </div>
-        <div class="flex justify-center mt-6 sm:mt-8">
-          <button mat-raised-button color="primary"
-                  type="submit"
-                  class="w-full py-3 sm:py-4 text-base sm:text-lg font-bold hover:scale-105 transition-transform duration-300 shadow-lg"
-                  [disabled]="isReadonly">
-            บันทึก
-          </button>
-        </div>
+                @if (getInventoriesByGroup(groupName).length === 0) {
+                  <p class="text-gray-500 text-center py-8">ไม่มีข้อมูลสำหรับ {{ groupName }}</p>
+                }
+              </div>
+            </mat-tab>
+          }
+        </mat-tab-group>
+
+        @if (inventories.length > 0) {
+          <div class="mt-6 sm:mt-8 p-3 sm:p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+            <label class="text-yellow-800 font-medium text-sm sm:text-base">*กรุณาตรวจสอบข้อมูลให้ดี สามารถกดบันทึกได้ครั้งเดียวต่อวัน หลังจากกดบันทึกแล้วจะไม่สามารถแก้ไขได้</label>
+          </div>
+          <div class="flex justify-center mt-6 sm:mt-8">
+            <button mat-raised-button color="primary"
+                    type="submit"
+                    class="w-full py-3 sm:py-4 text-base sm:text-lg font-bold hover:scale-105 transition-transform duration-300 shadow-lg">
+              บันทึก
+            </button>
+          </div>
+        }
       </form>
     </mat-card>
   </section>

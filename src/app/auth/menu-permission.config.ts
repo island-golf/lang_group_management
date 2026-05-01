@@ -11,9 +11,9 @@ export interface MenuItem {
 
 /** รายการเมนูทั้งหมดในระบบ */
 export const ALL_MENUS: MenuItem[] = [
-  { icon: '🏠', label: 'Home',             route: '/dashboard' },
-  { icon: '📊', label: 'Kaokang',          route: '/kaokang-inventory' },
-  { icon: '📋', label: 'Kaokang Summary',  route: '/kaokang-inventory-summary' },
+  { icon: '🏠', label: 'หน้าแรก',             route: '/dashboard' },
+  { icon: '📊', label: 'ระบบนับสต็อก',          route: '/kaokang-inventory' },
+  { icon: '📋', label: 'สรุประบบสต็อก',  route: '/kaokang-inventory-summary' },
 ];
 
 /**
