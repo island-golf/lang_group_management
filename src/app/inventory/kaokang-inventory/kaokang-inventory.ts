@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, QueryList, ViewChildren} from '@angular/core';
+import {Component, ElementRef, OnInit, QueryList, ViewChildren, HostListener} from '@angular/core';
 import {MatButton} from '@angular/material/button';
 import {MatCard} from '@angular/material/card';
 import {MatTabsModule} from '@angular/material/tabs';
@@ -28,6 +28,7 @@ export class KaokangInventory implements OnInit {
   showSuccess = false;
   showConfirm = false;
   isLoading = false;
+  showBackToTop = false;
 
   // Properties for dynamic tabs
   itemGroups: { [key: string]: any[] } = {};
@@ -275,6 +276,18 @@ export class KaokangInventory implements OnInit {
     if (nextInput) {
       nextInput.nativeElement.focus();
     }
+  }
+
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    this.showBackToTop = window.pageYOffset > 300;
+  }
+
+  scrollToTop() {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   }
 
   // async getTransactionInventory() {
