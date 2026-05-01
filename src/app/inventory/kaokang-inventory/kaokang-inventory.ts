@@ -3,8 +3,9 @@ import {MatButton} from '@angular/material/button';
 import {MatCard} from '@angular/material/card';
 import {MatTabsModule} from '@angular/material/tabs';
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
-import {InventoryInsertModel, MasterInventory} from './kaokang-inventory.model';
+import {InventoryInsertModel} from './kaokang-inventory.model';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {AuthService} from '../../auth/auth.service';
 
 @Component({
   selector: 'app-kaokang-inventory',
@@ -32,7 +33,7 @@ export class KaokangInventory implements OnInit {
   groupNames: string[] = [];
 
 
-  constructor() {
+  constructor(private auth: AuthService) {
     this.supabase = createClient(
       'https://batxjgnynvnykoingkij.supabase.co',
       'sb_publishable_UtUV7xSJeNC44WeOprBeDg_8tDWXA1w'
@@ -128,9 +129,11 @@ export class KaokangInventory implements OnInit {
   async submit() {
     console.log(this.formGroup.value.inventories);
     const data = this.formGroup.value.inventories;
+    const username = this.auth.currentUser()?.USERNAME || 'unknown';
     const inventoryInsertData: InventoryInsertModel[] = data.map((item: { master_id: any; amount: any; }) => ({
       M_INVENTORY_ID: item.master_id,
-      AMOUNT: item.amount == null || item.amount === '' ? 0 : item.amount
+      AMOUNT: item.amount == null || item.amount === '' ? 0 : item.amount,
+      CREATED_BY: username
     }));
 
     // ส่งกลับ Supabase ตามต้องการ
@@ -148,26 +151,26 @@ export class KaokangInventory implements OnInit {
 
   async insertTInventory(inventoryInsertData: InventoryInsertModel[]) {
     const today = this.getDate();
-    
+
     // First, delete existing records for today
     const {error: deleteError} = await this.supabase
       .from('T_INVENTORY')
       .delete()
       .gte('CREATED_DATETIME', `${today}T00:00:00`)
       .lte('CREATED_DATETIME', `${today}T23:59:59`);
-    
+
     if (deleteError) throw deleteError;
-    
+
     // Then insert new records with current datetime
     const dataWithDateTime = inventoryInsertData.map(item => ({
       ...item,
       CREATED_DATETIME: new Date().toISOString()
     }));
-    
+
     const {error: insertError} = await this.supabase
       .from('T_INVENTORY')
       .insert(dataWithDateTime);
-    
+
     if (insertError) throw insertError;
     return insertError;
   }

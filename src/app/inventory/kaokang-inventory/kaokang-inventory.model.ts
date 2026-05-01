@@ -30,4 +30,5 @@ export interface SummaryGroup {
 export interface InventoryInsertModel {
   M_INVENTORY_ID: number;
   AMOUNT: number;
+  CREATED_BY: string;
 }

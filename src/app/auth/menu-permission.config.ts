@@ -34,6 +34,14 @@ const USER_MENU_PERMISSION: Record<string, string[]> = {
   kaokang_user: [
     '/kaokang-inventory',
   ],
+  nok: [
+    '/dashboard',
+    '/kaokang-inventory',
+  ],
+  nam: [
+    '/dashboard',
+    '/kaokang-inventory',
+  ],
   // เพิ่ม user ใหม่ตรงนี้
 };
 
