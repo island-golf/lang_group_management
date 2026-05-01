@@ -8,7 +8,7 @@ import { MUser, SupabaseService } from '../../supabase/supabase.service';
 })
 export class AuthService {
   private readonly STORAGE_KEY = 'current_user';
-  private isBrowser: boolean;
+  private readonly isBrowser: boolean;
   currentUser = signal<MUser | null>(null);
   private initialized = false;
 
