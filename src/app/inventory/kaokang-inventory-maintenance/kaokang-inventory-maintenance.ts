@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { MatButton } from '@angular/material/button';
 import { MatCard } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
@@ -112,7 +111,10 @@ export class KaokangInventoryMaintenance implements OnInit {
 
   onAddItem(): void {
     const dialogRef = this.dialog.open(InventoryDialogComponent, {
-      data: { title: 'เพิ่มรายการใหม่' },
+      data: {
+        title: 'เพิ่มรายการใหม่',
+        groupedItems: this.groupedItems
+      },
       width: '70vw',
       maxWidth: '90vw',
       panelClass: 'wide-dialog'
@@ -140,11 +142,25 @@ export class KaokangInventoryMaintenance implements OnInit {
     });
   }
 
-  async onDeleteItem(item: MInventory): Promise<void> {
-    if (!confirm(`คุณต้องการลรายการ "${item.ITEM_DESC}" ใช่หรือไม่?`)) {
-      return;
-    }
+  onDeleteItem(item: MInventory): void {
+    const dialogRef = this.dialog.open(InventoryDialogComponent, {
+      data: {
+        title: 'ยืนยันการลบรายการ',
+        item,
+        isDeleteMode: true
+      },
+      width: '400px',
+      panelClass: 'confirm-dialog'
+    });
 
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.confirmDelete(item);
+      }
+    });
+  }
+
+  async confirmDelete(item: MInventory): Promise<void> {
     try {
       const { error } = await this.supabase
         .from('M_INVENTORY')
@@ -206,5 +222,18 @@ export class KaokangInventoryMaintenance implements OnInit {
 
   getActiveStatusClass(isActive: string): string {
     return isActive === 'Y' ? 'text-green-600' : 'text-red-600';
+  }
+
+  getNextSequence(itemGroup: string): number {
+    const group = itemGroup || 'ไม่ระบุกลุ่ม';
+    const items = this.groupedItems[group] || [];
+
+    if (items.length === 0) {
+      return 1;
+    }
+
+    // Find the maximum SEQ in the group
+    const maxSeq = Math.max(...items.map(item => item.SEQ || 0));
+    return maxSeq + 1;
   }
 }

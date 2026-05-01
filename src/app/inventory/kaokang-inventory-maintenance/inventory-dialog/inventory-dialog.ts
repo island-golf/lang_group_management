@@ -19,6 +19,8 @@ export interface MInventory {
 export interface DialogData {
   title: string;
   item?: MInventory;
+  isDeleteMode?: boolean;
+  groupedItems?: { [key: string]: MInventory[] };
 }
 
 @Component({
@@ -43,6 +45,23 @@ export class InventoryDialogComponent {
     this.initForm();
   }
 
+  calculateNextSequence(itemGroup: string): number {
+    if (!this.data.groupedItems) {
+      return 1;
+    }
+    
+    const group = itemGroup || 'ไม่ระบุกลุ่ม';
+    const items = this.data.groupedItems[group] || [];
+    
+    if (items.length === 0) {
+      return 1;
+    }
+    
+    // Find the maximum SEQ in the group
+    const maxSeq = Math.max(...items.map(item => item.SEQ || 0));
+    return maxSeq + 1;
+  }
+
   initForm(): void {
     this.inventoryForm = this.fb.group({
       item_desc: [this.data.item?.ITEM_DESC || '', Validators.required],
@@ -53,6 +72,14 @@ export class InventoryDialogComponent {
       seq: [this.data.item?.SEQ || null, [Validators.min(0)]],
       is_active_yn: [this.data.item?.IS_ACTIVE_YN || 'Y', Validators.required]
     });
+
+    // For new items, auto-calculate sequence when item group changes
+    if (!this.data.item) {
+      this.inventoryForm.get('item_group')?.valueChanges.subscribe(itemGroup => {
+        const nextSeq = this.calculateNextSequence(itemGroup);
+        this.inventoryForm.get('seq')?.setValue(nextSeq);
+      });
+    }
   }
 
   onSave(): void {
