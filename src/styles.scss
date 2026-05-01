@@ -159,3 +159,96 @@ input, select, textarea, label, button {
   background: rgba(255, 255, 255, 0.2);
 }
 
+// Fix mat-tab label font (global) - using :global for Angular Material
+:global .mat-mdc-tab-label {
+  font-family: 'ekachon', sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+:global .mdc-tab__text-label {
+  font-family: 'ekachon', sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+:global .mat-mdc-tab-labels {
+  font-family: 'ekachon', sans-serif !important;
+}
+
+:global .mat-mdc-tab-group .mat-mdc-tab-header .mat-mdc-tab-labels .mat-mdc-tab-label {
+  font-family: 'ekachon', sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+/* Fallback - try all possible selectors */
+.mat-mdc-tab-label {
+  font-family: 'ekachon', sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+.mdc-tab__text-label {
+  font-family: 'ekachon', sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+.mat-mdc-tab .mdc-tab__text-label {
+  font-family: 'ekachon', sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+/* Mat-table font */
+.mat-mdc-table,
+.mat-mdc-header-cell,
+.mat-mdc-cell,
+.mat-column-header,
+.mat-mdc-row,
+.mat-mdc-table tbody tr td,
+.mat-mdc-table thead tr th {
+  font-family: 'ekachon', sans-serif !important;
+}
+
+.mat-mdc-header-cell {
+  font-weight: 600 !important;
+}
+
+.mat-mdc-cell {
+  font-weight: 400 !important;
+}
+
+/* Heading elements */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'ekachon', sans-serif !important;
+}
+
+h1 {
+  font-weight: 700 !important;
+}
+
+h2 {
+  font-weight: 600 !important;
+}
+
+h3 {
+  font-weight: 600 !important;
+}
+
+h4, h5, h6 {
+  font-weight: 500 !important;
+}
+
+/* Dialog styles */
+.wide-dialog .mat-mdc-dialog-container {
+  width: 70vw !important;
+  max-width: 90vw !important;
+}
+
+.wide-dialog .mat-mdc-dialog-surface {
+  width: 70vw !important;
+  max-width: 90vw !important;
+}
+

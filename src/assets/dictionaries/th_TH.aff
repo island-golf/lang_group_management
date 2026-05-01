@@ -1,0 +1,65 @@
+# Thai Hunspell Affix File
+# Basic Thai dictionary configuration
+
+SET UTF-8
+TRY เกาฮกาฆะาิีึืัฺุูๆ็่้๊๋์abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+# Common Thai affixes
+PFX A Y 1
+PFX A 0 ่
+
+PFX I Y 1
+PFX I 0 ้
+
+PFX U Y 1
+PFX U 0 ๊
+
+PFX E Y 1
+PFX E 0 ๋
+
+# Suffix rules for Thai
+SFX N Y 1
+SFX N 0 น์
+
+SFX M Y 1
+SFX M 0 ม์
+
+# Repetition rules for common typos
+REP 2
+REP กข
+REP ขค
+REP คง
+REP งจ
+REP จฉ
+REP ฉช
+REP ชซ
+REP ซฌ
+REP ฌญ
+REP ญฎ
+REP ฏฐ
+REP ฐฑ
+REP ฑฒ
+REP ฒณ
+REP ณด
+REP ดต
+REP ตถ
+REPถท
+REPทธ
+REPธน
+REPนบ
+REPบป
+REPปผ
+REPผฝ
+REPฝพ
+REPพฟ
+REPฟภ
+REPภม
+REPมย
+REPยร
+REPรล
+REPลว
+REPวศ
+REPศษ
+REPสห
+REPหอ
+REPอฮ

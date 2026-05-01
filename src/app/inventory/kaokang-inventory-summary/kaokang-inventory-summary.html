@@ -91,5 +91,50 @@
       }
     </section>
 
+    <!-- Section 3: หมายเหตุ -->
+    @if (latestRemark || processedRemark) {
+      <section class="mt-8 sm:mt-10 max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-4 sm:px-0 w-full pb-10">
+        <h2 class="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">หมายเหตุ</h2>
+
+        <!-- Typo Correction Toggle -->
+        @if (processedRemark) {
+          <div class="mb-4 flex items-center gap-3">
+            <input type="checkbox"
+                   [checked]="enableTypoCorrection"
+                   (change)="toggleTypoCorrection()"
+                   class="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+            <label for="typo-correction" class="text-white font-medium cursor-pointer select-none">
+              แก้ไขคำผิดภาษาไทย
+            </label>
+            @if (!spellChecker.isReady()) {
+              <span class="text-xs text-yellow-300">(พจนานุกรมไม่พร้อมใช้งาน)</span>
+            }
+          </div>
+        }
+
+        <!-- Original Remark -->
+        @if (latestRemark) {
+          <div class="mb-4">
+            <h3 class="text-lg font-semibold text-blue-300 mb-3">Original</h3>
+            <div class="bg-white/10 backdrop-blur-lg border border-blue-400/40 rounded-xl p-4 sm:p-6">
+              <p class="text-white text-base sm:text-lg leading-relaxed">{{ latestRemark }}</p>
+            </div>
+          </div>
+        }
+
+        <!-- Processed Remark -->
+        @if (processedRemark) {
+          <div class="mb-4">
+            <h3 class="text-lg font-semibold text-green-300 mb-3">
+              {{ enableTypoCorrection ? 'Processed (แก้ไขคำผิด)' : 'Processed' }}
+            </h3>
+            <div class="bg-white/10 backdrop-blur-lg border border-green-400/40 rounded-xl p-4 sm:p-6">
+              <p class="text-white text-base sm:text-lg leading-relaxed whitespace-pre-line">{{ displayCorrectedRemark }}</p>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
   }
 </div>

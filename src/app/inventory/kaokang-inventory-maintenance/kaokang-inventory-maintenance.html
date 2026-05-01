@@ -1,0 +1,139 @@
+<!-- Loading Dialog -->
+@if (isLoading) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-10 flex flex-col items-center gap-4">
+      <div class="w-16 h-16 border-4 border-red-200 border-t-red-500 rounded-full animate-spin"></div>
+      <p class="text-xl font-semibold text-gray-800 dark:text-white">กำลังโหลดข้อมูล...</p>
+    </div>
+  </div>
+}
+
+<!-- Success Dialog -->
+@if (showSuccess) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div class="success-dialog bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-10 flex flex-col items-center gap-4">
+      <svg class="w-24 h-24 text-green-500" viewBox="0 0 52 52">
+        <circle class="circle-anim" cx="26" cy="26" r="25" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path class="check-anim" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M14 27 l8 8 l16-16"/>
+      </svg>
+      <p class="text-2xl font-bold text-gray-800 dark:text-white">บันทึกสำเร็จ</p>
+    </div>
+  </div>
+}
+
+
+<div class="flex-1 flex flex-col fade-in">
+  <header
+    class="bg-gradient-to-r from-red-600 via-red-500 to-red-400 shadow-2xl px-4 sm:px-6 py-6 sm:py-8 flex flex-col items-start rounded-2xl text-white mb-8">
+    <h1 class="text-2xl sm:text-3xl font-bold mb-2">จัดการข้อมูลสต็อกข้าวแกงยายแลง</h1>
+    <h3 class="text-lg sm:text-xl font-semibold text-red-200">Inventory Maintenance (Admin Only)</h3>
+  </header>
+
+  <section class="max-w-7xl mx-auto px-4 sm:px-0 w-full">
+
+    <!-- Inventory Table with Tabs -->
+    <mat-card class="p-6 hover:shadow-2xl transition-shadow duration-300">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-gray-800 dark:text-white">รายการสินค้าทั้งหมด</h2>
+        <button
+          (click)="onAddItem()"
+          class="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">
+          <mat-icon class="mr-2">add</mat-icon>
+          <span class="whitespace-nowrap">เพิ่มรายการใหม่</span>
+        </button>
+      </div>
+
+      @if (itemGroups.length > 0) {
+        <mat-tab-group [(selectedIndex)]="selectedTab" class="inventory-tabs">
+          @for (group of itemGroups; track group) {
+            <mat-tab [label]="group">
+              <div class="p-4">
+                <div class="overflow-x-auto">
+                  <table mat-table [dataSource]="groupedItems[group]" class="w-full">
+                    <!-- Sequence Column -->
+                    <ng-container matColumnDef="seq">
+                      <th mat-header-cell *matHeaderCellDef>ลำดับ</th>
+                      <td mat-cell *matCellDef="let item">{{ item.SEQ || '-' }}</td>
+                    </ng-container>
+
+                    <!-- Item Description Column -->
+                    <ng-container matColumnDef="item_desc">
+                      <th mat-header-cell *matHeaderCellDef>รายการสินค้า</th>
+                      <td mat-cell *matCellDef="let item">{{ item.ITEM_DESC }}</td>
+                    </ng-container>
+
+                    <!-- Default Amount Column -->
+                    <ng-container matColumnDef="default_amount">
+                      <th mat-header-cell *matHeaderCellDef>จำนวนเริ่มต้น</th>
+                      <td mat-cell *matCellDef="let item">{{ item.DEFAULT_AMOUNT || '-' }}</td>
+                    </ng-container>
+
+                    <!-- Unit Column -->
+                    <ng-container matColumnDef="unit">
+                      <th mat-header-cell *matHeaderCellDef>หน่วย</th>
+                      <td mat-cell *matCellDef="let item">{{ item.UNIT || '-' }}</td>
+                    </ng-container>
+
+                    <!-- Vendor Group Column -->
+                    <ng-container matColumnDef="vendor_group">
+                      <th mat-header-cell *matHeaderCellDef>กลุ่มผู้ขาย</th>
+                      <td mat-cell *matCellDef="let item">{{ item.VENDOR_GROUP || '-' }}</td>
+                    </ng-container>
+
+                    <!-- Active Status Column -->
+                    <ng-container matColumnDef="is_active_yn">
+                      <th mat-header-cell *matHeaderCellDef>สถานะ</th>
+                      <td mat-cell *matCellDef="let item">
+                        <span [class]="getActiveStatusClass(item.IS_ACTIVE_YN)">
+                          {{ getActiveStatusText(item.IS_ACTIVE_YN) }}
+                        </span>
+                      </td>
+                    </ng-container>
+
+                    <!-- Actions Column -->
+                    <ng-container matColumnDef="actions">
+                      <th mat-header-cell *matHeaderCellDef>จัดการ</th>
+                      <td mat-cell *matCellDef="let item">
+                        <div class="flex space-x-2">
+                          <button
+                            (click)="onEditItem(item)"
+                            class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                            title="แก้ไข">
+                            <mat-icon>edit</mat-icon>
+                          </button>
+                          <button
+                            (click)="onDeleteItem(item)"
+                            class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                            title="ลบ">
+                            <mat-icon>delete</mat-icon>
+                          </button>
+                        </div>
+                      </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                  </table>
+
+                  @if (groupedItems[group].length === 0) {
+                    <div class="text-center py-8 text-gray-500">
+                      ไม่มีข้อมูลในกลุ่มนี้
+                    </div>
+                  }
+                </div>
+              </div>
+            </mat-tab>
+          }
+        </mat-tab-group>
+      }
+
+      @if (itemGroups.length === 0 && !isLoading) {
+        <div class="text-center py-8 text-gray-500">
+          ไม่มีข้อมูลในระบบ
+        </div>
+      }
+    </mat-card>
+  </section>
+</div>

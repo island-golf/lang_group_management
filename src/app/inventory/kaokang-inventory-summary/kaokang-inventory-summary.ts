@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import {SummaryGroup, SummaryItem} from '../kaokang-inventory/kaokang-inventory.model';
+import {ThaiSpellCheckerService} from '../../services/thai-spell-checker.service';
 
 @Component({
   selector: 'app-kaokang-inventory-summary',
@@ -15,8 +16,12 @@ export class KaokangInventorySummary implements OnInit {
   isLoading = true;
   displayDate: string = '';
   lastUpdatedText: string = 'ยังไม่เคยอัปเดต';
+  latestRemark: string = '';
+  processedRemark: string = '';
+  correctedRemark: string = '';
+  enableTypoCorrection: boolean = true;
 
-  constructor() {
+  constructor(public spellChecker: ThaiSpellCheckerService) {
     this.supabase = createClient(
       'https://batxjgnynvnykoingkij.supabase.co',
       'sb_publishable_UtUV7xSJeNC44WeOprBeDg_8tDWXA1w'
@@ -51,16 +56,32 @@ export class KaokangInventorySummary implements OnInit {
       this.displayDate = this.getThaiDate();
     }
 
-    const [{data: masterData, error: masterError}, {data: tranData, error: tranError}] = await Promise.all([
+    const [{data: masterData, error: masterError}, {data: tranData, error: tranError}, {data: remarkData, error: remarkError}] = await Promise.all([
       this.supabase.from('M_INVENTORY').select('ID, ITEM_DESC, DEFAULT_AMOUNT, UNIT, VENDOR_GROUP, ITEM_GROUP').eq('IS_ACTIVE_YN', 'Y').order('ITEM_GROUP').order('SEQ'),
       this.supabase.from('T_INVENTORY')
         .select('M_INVENTORY_ID, AMOUNT')
         .gte('CREATED_DATETIME', `${latestDate}T00:00:00`)
-        .lte('CREATED_DATETIME', `${latestDate}T23:59:59`)
+        .lte('CREATED_DATETIME', `${latestDate}T23:59:59`),
+      this.supabase.from('T_INVENTORY_REMARK')
+        .select('REMARK')
+        .order('CREATED_DATETIME', { ascending: false })
+        .limit(1)
     ]);
 
     if (masterError) throw masterError;
     if (tranError) throw tranError;
+    if (remarkError) throw remarkError;
+
+    // Set the latest remark
+    this.latestRemark = remarkData && remarkData.length > 0 ? remarkData[0].REMARK : '';
+
+    // Process the remark to extract text after emojis (excluding red triangle)
+    this.processedRemark = this.processRemark(this.latestRemark);
+
+    // Apply Thai typo correction if enabled
+    this.correctedRemark = this.enableTypoCorrection ?
+      this.spellChecker.correctThaiTypos(this.processedRemark) :
+      this.processedRemark;
 
     const belowThreshold: SummaryItem[] = (masterData ?? [])
       .map(master => {
@@ -84,10 +105,17 @@ export class KaokangInventorySummary implements OnInit {
       groupMap.get(item.vendor_group)!.push(item);
     }
 
-    this.summaryGroups = Array.from(groupMap.entries()).map(([vendor_group, items]) => ({
-      vendor_group,
-      items
-    }));
+    this.summaryGroups = Array.from(groupMap.entries())
+      .map(([vendor_group, items]) => ({
+        vendor_group,
+        items
+      }))
+      .sort((a, b) => {
+        // Put '-' at the end
+        if (a.vendor_group === '-') return 1;
+        if (b.vendor_group === '-') return -1;
+        return a.vendor_group.localeCompare(b.vendor_group, 'th');
+      });
 
     this.lastUpdatedText = this.getThaiDateTimeForDate(new Date());
     this.isLoading = false;
@@ -95,6 +123,52 @@ export class KaokangInventorySummary implements OnInit {
 
   get hasItems(): boolean {
     return this.summaryGroups.length > 0;
+  }
+
+  processRemark(remark: string): string {
+    if (!remark) return '';
+
+    // Split by emojis and filter out content after red triangle emoji (🔺)
+    const parts = remark.split(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u);
+
+    let result = '';
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i].trim();
+      if (part) {
+        // Check if this part comes after a red triangle emoji
+        const beforeEmoji = remark.substring(0, remark.indexOf(part));
+        const lastCharIndex = beforeEmoji.length - 1;
+        const lastChar = beforeEmoji[lastCharIndex];
+
+        // Red triangle emoji is \u{1F534}
+        if (lastChar === '\u{1F534}') {
+          // Skip this part as it comes after red triangle
+          continue;
+        }
+
+        // Skip parts containing "บาท"
+        if (part.includes('บาท')) {
+          continue;
+        }
+
+        // Remove only the words "หมด" and "ขาด" from the text part
+        const cleanedPart = part.replace(/หมด|ขาด/g, '').trim();
+
+        // Skip if the part becomes empty after removing these words
+        if (!cleanedPart) {
+          continue;
+        }
+
+        // Add line break before new text part (except first part)
+        if (result) {
+          result += '\n';
+        }
+
+        result += cleanedPart;
+      }
+    }
+
+    return result.trim();
   }
 
   getDate(): string {
@@ -128,5 +202,16 @@ export class KaokangInventorySummary implements OnInit {
     const minutes = String(date.getMinutes()).padStart(2, '0');
 
     return `${day}/${month}/${yearBE} เวลา ${hours}:${minutes} น.`;
+  }
+
+  toggleTypoCorrection() {
+    this.enableTypoCorrection = !this.enableTypoCorrection;
+    this.correctedRemark = this.enableTypoCorrection ?
+      this.spellChecker.correctThaiTypos(this.processedRemark) :
+      this.processedRemark;
+  }
+
+  get displayCorrectedRemark(): string {
+    return this.enableTypoCorrection ? this.correctedRemark : this.processedRemark;
   }
 }

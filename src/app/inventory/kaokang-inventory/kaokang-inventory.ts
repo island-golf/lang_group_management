@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, QueryList, ViewChildren, HostListener} from '@angular/core';
+import {Component, ElementRef, OnInit, QueryList, ViewChildren, HostListener, ViewEncapsulation} from '@angular/core';
 import {MatButton} from '@angular/material/button';
 import {MatCard} from '@angular/material/card';
 import {MatTabsModule} from '@angular/material/tabs';
@@ -16,7 +16,8 @@ import {AuthService} from '../../auth/auth.service';
     MatTabsModule
   ],
   templateUrl: './kaokang-inventory.html',
-  styleUrl: './kaokang-inventory.scss'
+  styleUrl: './kaokang-inventory.scss',
+  encapsulation: ViewEncapsulation.None
 })
 export class KaokangInventory implements OnInit {
   @ViewChildren('amountInput') amountInputs!: QueryList<ElementRef>;
@@ -88,6 +89,14 @@ export class KaokangInventory implements OnInit {
           this.groupNames.push(groupName);
         }
         this.itemGroups[groupName].push(inv);
+      });
+
+      // Sort groups alphabetically by item_group (Thai locale)
+      this.groupNames.sort((a, b) => {
+        // Put 'อื่นๆ' at the end
+        if (a === 'อื่นๆ') return 1;
+        if (b === 'อื่นๆ') return -1;
+        return a.localeCompare(b, 'th');
       });
 
       // Create form controls for all items

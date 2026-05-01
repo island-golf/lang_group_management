@@ -14,6 +14,7 @@ export const ALL_MENUS: MenuItem[] = [
   { icon: '🏠', label: 'หน้าแรก',             route: '/home' },
   { icon: '📊', label: 'ระบบนับสต็อก',          route: '/kaokang-inventory' },
   { icon: '📋', label: 'สรุประบบสต็อก',  route: '/kaokang-inventory-summary' },
+  { icon: '⚙️', label: 'จัดการข้อมูลสต็อก', route: '/kaokang-inventory-maintenance' },
 ];
 
 /**
@@ -30,6 +31,7 @@ const USER_MENU_PERMISSION: Record<string, string[]> = {
     '/home',
     '/kaokang-inventory',
     '/kaokang-inventory-summary',
+    '/kaokang-inventory-maintenance',
   ],
   kaokang_user: [
     '/kaokang-inventory',
