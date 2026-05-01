@@ -7,10 +7,11 @@ import { Home } from './home/home';
 import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login },
   { path: 'home', component: Home, canActivate: [authGuard] },
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
   { path: 'kaokang-inventory', component: KaokangInventory, canActivate: [authGuard] },
   { path: 'kaokang-inventory-summary', component: KaokangInventorySummary, canActivate: [authGuard] },
+  { path: '**', redirectTo: 'login' }
 ];

@@ -11,7 +11,7 @@ export interface MenuItem {
 
 /** รายการเมนูทั้งหมดในระบบ */
 export const ALL_MENUS: MenuItem[] = [
-  { icon: '🏠', label: 'หน้าแรก',             route: '/dashboard' },
+  { icon: '🏠', label: 'หน้าแรก',             route: '/home' },
   { icon: '📊', label: 'ระบบนับสต็อก',          route: '/kaokang-inventory' },
   { icon: '📋', label: 'สรุประบบสต็อก',  route: '/kaokang-inventory-summary' },
 ];
@@ -27,7 +27,7 @@ export const ALL_MENUS: MenuItem[] = [
  */
 const USER_MENU_PERMISSION: Record<string, string[]> = {
   admin: [
-    '/dashboard',
+    '/home',
     '/kaokang-inventory',
     '/kaokang-inventory-summary',
   ],
@@ -35,18 +35,18 @@ const USER_MENU_PERMISSION: Record<string, string[]> = {
     '/kaokang-inventory',
   ],
   nok: [
-    '/dashboard',
+    '/home',
     '/kaokang-inventory',
   ],
   nam: [
-    '/dashboard',
+    '/home',
     '/kaokang-inventory',
   ],
   // เพิ่ม user ใหม่ตรงนี้
 };
 
 /** เมนู default สำหรับ user ที่ไม่ได้กำหนดไว้ */
-const DEFAULT_PERMITTED_ROUTES: string[] = ['/dashboard'];
+const DEFAULT_PERMITTED_ROUTES: string[] = ['/home'];
 
 /**
  * รับ username แล้วคืน MenuItem[] ที่ user นั้นๆ มีสิทธิ์เห็น
