@@ -7,6 +7,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { AuthService } from '../../auth/auth.service';
 import { InventoryDialogComponent, MInventory } from './inventory-dialog/inventory-dialog';
+import { sortItemGroups } from '../../config/item-group-order.config';
 
 @Component({
   selector: 'app-kaokang-inventory-maintenance',
@@ -91,13 +92,8 @@ export class KaokangInventoryMaintenance implements OnInit {
       this.groupedItems[group].push(item);
     });
 
-    // Sort groups alphabetically by item_group
-    this.itemGroups = Object.keys(this.groupedItems).sort((a, b) => {
-      // Put 'ไม่ระบุกลุ่ม' at the end
-      if (a === 'ไม่ระบุกลุ่ม') return 1;
-      if (b === 'ไม่ระบุกลุ่ม') return -1;
-      return a.localeCompare(b, 'th');
-    });
+    // Sort groups using the config order
+    this.itemGroups = sortItemGroups(Object.keys(this.groupedItems));
 
     // Sort items within each group by SEQ
     this.itemGroups.forEach(group => {

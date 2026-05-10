@@ -6,6 +6,7 @@ import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import {InventoryInsertModel} from './kaokang-inventory.model';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {AuthService} from '../../auth/auth.service';
+import { sortItemGroups } from '../../config/item-group-order.config';
 
 @Component({
   selector: 'app-kaokang-inventory',
@@ -91,13 +92,8 @@ export class KaokangInventory implements OnInit {
         this.itemGroups[groupName].push(inv);
       });
 
-      // Sort groups alphabetically by item_group (Thai locale)
-      this.groupNames.sort((a, b) => {
-        // Put 'อื่นๆ' at the end
-        if (a === 'อื่นๆ') return 1;
-        if (b === 'อื่นๆ') return -1;
-        return a.localeCompare(b, 'th');
-      });
+      // Sort groups using the config order
+      this.groupNames = sortItemGroups(this.groupNames);
 
       // Create form controls for all items
       data?.forEach(inv => {
