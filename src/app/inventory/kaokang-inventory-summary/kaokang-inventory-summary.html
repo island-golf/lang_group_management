@@ -81,7 +81,7 @@
             @for (item of group.items; track item.master_id) {
               <div class="flex items-center gap-3">
                 <span class="text-white text-base sm:text-lg">
-                  {{ item.item_desc }}
+                  {{ item.item_desc }} =
                   <span class="font-bold text-orange-300"> {{ item.default_amount - item.actual_amount }} {{ item.unit }}</span>
                 </span>
               </div>

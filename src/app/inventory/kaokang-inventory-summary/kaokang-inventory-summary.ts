@@ -84,9 +84,9 @@ export class KaokangInventorySummary implements OnInit {
       this.processedRemark;
 
     const belowThreshold: SummaryItem[] = (masterData ?? [])
-      .map(master => {
+      .flatMap(master => {
         const tran = tranData?.find(t => t.M_INVENTORY_ID === master.ID);
-        return {
+        const baseItem = {
           master_id: master.ID,
           item_desc: master.ITEM_DESC,
           default_amount: master.DEFAULT_AMOUNT,
@@ -94,6 +94,30 @@ export class KaokangInventorySummary implements OnInit {
           unit: master.UNIT,
           vendor_group: master.VENDOR_GROUP
         };
+
+        // Check if this is "ข้าวสาร" and needs to be split
+        if (master.ITEM_DESC === "ข้าวสาร" && baseItem.actual_amount < baseItem.default_amount) {
+          const calculatedAmount = (baseItem.default_amount - baseItem.actual_amount) * 5;
+
+          console.log(`แยกรายการ ข้าวสาร: จำนวนที่ต้องสั่ง = ${calculatedAmount} หน่วย: ${baseItem.unit}`);
+
+          return [
+            {
+              ...baseItem,
+              item_desc: "ข้าวสารตรามังกรทอง",
+              default_amount: calculatedAmount,
+              actual_amount: 0
+            },
+            {
+              ...baseItem,
+              item_desc: "ข้าวสารตราบัวชมพู",
+              default_amount: calculatedAmount,
+              actual_amount: 0
+            }
+          ];
+        }
+
+        return baseItem;
       })
       .filter(item => item.actual_amount < item.default_amount);
 
