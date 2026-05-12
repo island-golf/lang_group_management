@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import {SummaryGroup, SummaryItem} from '../kaokang-inventory/kaokang-inventory.model';
 import {ThaiSpellCheckerService} from '../../services/thai-spell-checker.service';
+import {wordConfigs} from '../../config/remark-item-multiplier.config';
 
 @Component({
   selector: 'app-kaokang-inventory-summary',
@@ -122,7 +123,25 @@ export class KaokangInventorySummary implements OnInit {
       .filter(item => item.actual_amount < item.default_amount);
 
     const groupMap = new Map<string, SummaryItem[]>();
+    const itemDescMap = new Map<string, SummaryItem>();
+
     for (const item of belowThreshold) {
+      const key = `${item.vendor_group}_${item.item_desc}`;
+      const difference = item.default_amount - item.actual_amount;
+
+      if (itemDescMap.has(key)) {
+        const existingItem = itemDescMap.get(key)!;
+        const existingDifference = existingItem.default_amount - existingItem.actual_amount;
+
+        // Sum the differences and update the default_amount
+        const newDifference = existingDifference + difference;
+        existingItem.default_amount = existingItem.actual_amount + newDifference;
+      } else {
+        itemDescMap.set(key, {...item});
+      }
+    }
+
+    for (const item of itemDescMap.values()) {
       if (!groupMap.has(item.vendor_group)) {
         groupMap.set(item.vendor_group, []);
       }
@@ -152,47 +171,110 @@ export class KaokangInventorySummary implements OnInit {
   processRemark(remark: string): string {
     if (!remark) return '';
 
-    // Split by emojis and filter out content after red triangle emoji (🔺)
-    const parts = remark.split(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u);
+    let result = remark;
 
-    let result = '';
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i].trim();
-      if (part) {
-        // Check if this part comes after a red triangle emoji
-        const beforeEmoji = remark.substring(0, remark.indexOf(part));
-        const lastCharIndex = beforeEmoji.length - 1;
-        const lastChar = beforeEmoji[lastCharIndex];
+    // Remove patterns like "🔺**** (ตัวเลข) บาท"
+    result = result.replace(/🔺[^🔺]*\d+\s*บาท/g, '');
 
-        // Red triangle emoji is \u{1F534}
-        if (lastChar === '\u{1F534}') {
-          // Skip this part as it comes after red triangle
-          continue;
+    // Remove patterns like "เมนูวัน****"
+    result = result.replace(/เมนูวัน.*/g, '');
+
+    // Remove red triangle emoji
+    result = result.replace(/🔺/g, '');
+
+    // Remove cross mark emoji
+    result = result.replace(/❌/g, '');
+
+    // Remove text within parentheses
+    result = result.replace(/\([^)]*\)/g, '');
+
+    // Remove the words "หมด" and "ขาด"
+    result = result.replace(/หมด|ขาด/g, '');
+
+    // Replace "น่องไก่ทอด" with "ปีกบนไก่"
+    // result = result.replace(/น่องไก่ทอด/g, 'ปีกบนไก่');
+
+    // Replace "ลูกชิ้นหมู" with "ลูกชิ้นหมูผสมไก่"
+    result = result.replace(/ลูกชิ้นหมู/g, 'ลูกชิ้นหมูผสมไก่');
+
+    // Count and replace words based on configuration
+    const wordCounts = new Map<string, number>();
+    const words = result.split(/\s+/);
+
+    for (const word of words) {
+      const cleanWord = word.trim();
+      for (const config of wordConfigs) {
+        if (cleanWord === config.pattern) {
+          wordCounts.set(config.pattern, (wordCounts.get(config.pattern) || 0) + 1);
+          break;
         }
-
-        // Skip parts containing "บาท"
-        if (part.includes('บาท')) {
-          continue;
-        }
-
-        // Remove only the words "หมด" and "ขาด" from the text part
-        const cleanedPart = part.replace(/หมด|ขาด/g, '').trim();
-
-        // Skip if the part becomes empty after removing these words
-        if (!cleanedPart) {
-          continue;
-        }
-
-        // Add line break before new text part (except first part)
-        if (result) {
-          result += '\n';
-        }
-
-        result += cleanedPart;
       }
     }
 
-    return result.trim();
+    // Replace words with calculated format
+    const originalWords = result.split(/\s+/);
+    result = originalWords.map(word => {
+      const cleanWord = word.trim();
+      for (const config of wordConfigs) {
+        if (cleanWord === config.pattern) {
+          const count = wordCounts.get(config.pattern) || 0;
+          const total = (count * config.multiplier).toFixed(1).replace(/\.0$/, '');
+          return `${cleanWord} = ${total} ${config.unit}`;
+        }
+      }
+      return cleanWord;
+    }).join(' ');
+
+    // Split by lines and filter out empty lines
+    const lines = result.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    // Sort lines to group "หมู" items together, then "ไก่" items, then others
+    const sortedLines = lines.sort((a, b) => {
+      const aHasPork = a.includes('หมู') && !a.includes('ลูกชิ้นหมู');
+      const bHasPork = b.includes('หมู') && !b.includes('ลูกชิ้นหมู');
+      const aHasChicken = a.includes('ไก่');
+      const bHasChicken = b.includes('ไก่');
+
+      // Priority: pork lines first, then chicken lines, then others
+      if (aHasPork && !bHasPork) return -1;
+      if (!aHasPork && bHasPork) return 1;
+
+      if (aHasChicken && !bHasChicken) return -1;
+      if (!aHasChicken && bHasChicken) return 1;
+
+      // If both have same keyword or neither has, keep original order
+      return 0;
+    });
+
+    // Split each line into separate items while keeping calculated amounts with their items
+    const splitLines: string[] = [];
+    for (const line of sortedLines) {
+      // Create a single regex pattern that matches all units from config
+      const allUnits = wordConfigs.map(config => config.unit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+      const withCalculation = line.match(new RegExp(`\\S+\\s*=\\s*\\d+\\.?\\d*\\s*(${allUnits})`, 'g')) || [];
+
+      // Extract item names from calculations
+      const calcItemNames = withCalculation.map(calc => calc.split('=')[0].trim());
+
+      // Remove calculated items from the line to get standalone items
+      let remainingLine = line;
+      for (const calc of withCalculation) {
+        remainingLine = remainingLine.replace(calc, '');
+      }
+
+      // Get standalone items (trim and filter empty)
+      const standaloneItems = remainingLine.split(/\s+/)
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+
+      // Add all items to splitLines
+      standaloneItems.forEach(item => splitLines.push(item));
+      withCalculation.forEach(calc => splitLines.push(calc.trim()));
+    }
+
+    return splitLines.join('\n');
   }
 
   getDate(): string {
