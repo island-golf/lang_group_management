@@ -256,7 +256,7 @@ export class KaokangInventorySummary implements OnInit {
       const withCalculation = line.match(new RegExp(`\\S+\\s*=\\s*\\d+\\.?\\d*\\s*(${allUnits})`, 'g')) || [];
 
       // Extract item names from calculations
-      const calcItemNames = withCalculation.map(calc => calc.split('=')[0].trim());
+      withCalculation.map(calc => calc.split('=')[0].trim());
 
       // Remove calculated items from the line to get standalone items
       let remainingLine = line;
