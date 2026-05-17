@@ -68,13 +68,6 @@ export class ThaiSpellCheckerService {
     }).join('');
   }
 
-  // Simple Thai word validation using regex patterns
-  private isValidThaiWord(word: string): boolean {
-    // Basic Thai character range check
-    const thaiRegex = /^[\u0E00-\u0E7F]+$/;
-    return thaiRegex.test(word) && word.length > 0;
-  }
-
   // Enhanced typo correction with common Thai typo patterns
   correctThaiTypos(text: string): string {
     if (!text) return text;
@@ -86,6 +79,8 @@ export class ThaiSpellCheckerService {
       'ฯลฯ': 'ฯลฯ',
       'เดัด': 'เด็ด',
       'เทด': 'เทศ',
+      'แครัอด': 'แครอท',
+      'ลูกชิ้นปลากาย': 'ลูกชิ้นปลากราย',
       // Add more common corrections as needed
     };
 

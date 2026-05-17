@@ -8,6 +8,7 @@ import {wordConfigs} from '../../config/remark-item-multiplier.config';
   selector: 'app-kaokang-inventory-summary',
   imports: [],
   templateUrl: './kaokang-inventory-summary.html',
+  standalone: true,
   styleUrl: './kaokang-inventory-summary.scss'
 })
 export class KaokangInventorySummary implements OnInit {
@@ -201,29 +202,45 @@ export class KaokangInventorySummary implements OnInit {
     const wordCounts = new Map<string, number>();
     const words = result.split(/\s+/);
 
+    // Map synonyms to canonical patterns (use 'หมูสับ' for both 'หมูบด' and 'หมูสับ')
+    const synonymMap = new Map<string, string>([
+      ['หมูบด', 'หมูสับ']
+    ]);
+
     for (const word of words) {
       const cleanWord = word.trim();
+      const canonical = synonymMap.get(cleanWord) ?? cleanWord;
       for (const config of wordConfigs) {
-        if (cleanWord === config.pattern) {
+        if (canonical === config.pattern) {
           wordCounts.set(config.pattern, (wordCounts.get(config.pattern) || 0) + 1);
           break;
         }
       }
     }
 
-    // Replace words with calculated format
+    // Replace words with calculated format, but emit each calculated item only once
     const originalWords = result.split(/\s+/);
+    const emittedCalculated = new Set<string>();
     result = originalWords.map(word => {
       const cleanWord = word.trim();
+      const canonical = synonymMap.get(cleanWord) ?? cleanWord;
       for (const config of wordConfigs) {
-        if (cleanWord === config.pattern) {
+        if (canonical === config.pattern) {
+          // If we've already emitted the calculated value for this pattern,
+          // skip additional occurrences to avoid duplicates when count > 1
+          if (emittedCalculated.has(config.pattern)) {
+            return '';
+          }
+          emittedCalculated.add(config.pattern);
+
           const count = wordCounts.get(config.pattern) || 0;
           const total = (count * config.multiplier).toFixed(1).replace(/\.0$/, '');
-          return `${cleanWord} = ${total} ${config.unit}`;
+          return `${config.pattern} = ${total} ${config.unit}`;
         }
       }
-      return cleanWord;
-    }).join(' ');
+      // Return the canonical form for synonyms (e.g. 'หมูบด' -> 'หมูสับ')
+      return canonical;
+    }).filter(w => w.length > 0).join(' ');
 
     // Split by lines and filter out empty lines
     const lines = result.split('\n')
