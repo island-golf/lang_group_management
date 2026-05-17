@@ -1,7 +1,6 @@
 import {Component, ElementRef, OnInit, QueryList, ViewChildren, HostListener, ViewEncapsulation} from '@angular/core';
 import {MatButton} from '@angular/material/button';
 import {MatCard} from '@angular/material/card';
-import {MatTabsModule} from '@angular/material/tabs';
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import {InventoryInsertModel} from './kaokang-inventory.model';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
@@ -10,14 +9,14 @@ import { sortItemGroups } from '../../config/item-group-order.config';
 
 @Component({
   selector: 'app-kaokang-inventory',
+  standalone: true,
   imports: [
     MatButton,
     MatCard,
     ReactiveFormsModule,
-    MatTabsModule
   ],
   templateUrl: './kaokang-inventory.html',
-  styleUrl: './kaokang-inventory.scss',
+  styleUrls: ['./kaokang-inventory.scss'],
   encapsulation: ViewEncapsulation.None
 })
 export class KaokangInventory implements OnInit {
@@ -31,6 +30,12 @@ export class KaokangInventory implements OnInit {
   showConfirm = false;
   isLoading = false;
   showBackToTop = false;
+  // Index of the currently selected tab (used by the UI to switch groups)
+  // -1 means no group selected (show group selection cards). 0..N-1 are groups, N is remark panel.
+  activeTabIndex = -1;
+
+  // The display name used for the remark panel (added to groupNames so it appears as a card)
+  remarkGroupName = 'หมายเหตุ';
 
   // Properties for dynamic tabs
   itemGroups: { [key: string]: any[] } = {};
@@ -94,6 +99,11 @@ export class KaokangInventory implements OnInit {
 
       // Sort groups using the config order
       this.groupNames = sortItemGroups(this.groupNames);
+
+      // Ensure remark group is present in the list so it appears as a selectable card
+      if (!this.groupNames.includes(this.remarkGroupName)) {
+        this.groupNames.push(this.remarkGroupName);
+      }
 
       // Create form controls for all items
       data?.forEach(inv => {
@@ -227,16 +237,16 @@ export class KaokangInventory implements OnInit {
   async upsertRemark(remark: string) {
     const today = this.getDate();
     const username = this.auth.currentUser()?.USERNAME || 'unknown';
-    
+
     // First, delete existing records for today
     const {error: deleteError} = await this.supabase
       .from('T_INVENTORY_REMARK')
       .delete()
       .gte('CREATED_DATETIME', `${today}T00:00:00`)
       .lte('CREATED_DATETIME', `${today}T23:59:59`);
-    
+
     if (deleteError) throw deleteError;
-    
+
     // Then insert new record
     const {error: insertError} = await this.supabase
       .from('T_INVENTORY_REMARK')
@@ -245,7 +255,7 @@ export class KaokangInventory implements OnInit {
         CREATED_BY: username,
         CREATED_DATETIME: new Date().toISOString()
       });
-    
+
     if (insertError) throw insertError;
     return insertError;
   }
@@ -274,14 +284,6 @@ export class KaokangInventory implements OnInit {
   }
 
 
-  onEnterKey(event: Event, currentIndex: number) {
-    event.preventDefault();
-    const inputs = this.amountInputs.toArray();
-    const nextInput = inputs[currentIndex + 1];
-    if (nextInput) {
-      nextInput.nativeElement.focus();
-    }
-  }
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
