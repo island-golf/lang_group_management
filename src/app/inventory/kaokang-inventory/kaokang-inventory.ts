@@ -176,25 +176,52 @@ export class KaokangInventory implements OnInit {
 
     console.log(this.formGroup.value);
     const formData = this.formGroup.value;
-    const inventoryData = formData.inventories;
     const remark = formData.remark || '';
     const username = this.auth.currentUser()?.USERNAME || 'unknown';
+    // Determine which section is being saved (group or remark)
+    const selectedIndex = this.activeTabIndex;
 
-    const inventoryInsertData: InventoryInsertModel[] = inventoryData.map((item: { master_id: any; amount: any; }) => ({
-      M_INVENTORY_ID: item.master_id,
-      AMOUNT: item.amount == null || item.amount === '' ? 0 : item.amount,
-      CREATED_BY: username
-    }));
-
-    // ส่งกลับ Supabase ตามต้องการ
     this.isLoading = true;
     try {
-      // Insert inventory data
-      const inventoryResult = await this.insertTInventory(inventoryInsertData);
+      if (selectedIndex === -1) {
+        // Nothing selected - nothing to save
+        return;
+      }
 
-      // Upsert remark data
-      await this.upsertRemark(remark);
+      const selectedGroup = this.groupNames[selectedIndex];
 
+      if (selectedGroup === this.remarkGroupName) {
+        // Only save remark
+        await this.upsertRemark(remark);
+        this.showSuccess = true;
+        setTimeout(() => this.showSuccess = false, 2000);
+        return;
+      }
+
+      // For a specific group: build insert data only for inventory items that belong to this group
+      const inventoryInsertData: InventoryInsertModel[] = this.inventories.controls
+        .filter(ctrl => ctrl.get('item_group')?.value === selectedGroup)
+        .map(ctrl => ({
+          M_INVENTORY_ID: ctrl.get('master_id')?.value,
+          AMOUNT: ctrl.get('amount')?.value == null || ctrl.get('amount')?.value === '' ? 0 : ctrl.get('amount')?.value,
+          CREATED_BY: username
+        }));
+
+      // If there are no items for this group, still upsert remark and show success
+      if (inventoryInsertData.length === 0) {
+        await this.upsertRemark(remark);
+        this.showSuccess = true;
+        setTimeout(() => this.showSuccess = false, 2000);
+        return;
+      }
+
+      // Collect master ids to delete existing records for this group for today
+      const idsToDelete = inventoryInsertData.map(i => i.M_INVENTORY_ID);
+
+      // Delete & insert only for the selected group
+      const inventoryResult = await this.insertTInventory(inventoryInsertData, idsToDelete);
+
+      // Only save remark when the remark panel is active. (Do not upsert remark when saving a group.)
       if (!inventoryResult) {
         this.showSuccess = true;
         setTimeout(() => this.showSuccess = false, 2000);
@@ -208,19 +235,24 @@ export class KaokangInventory implements OnInit {
     this.showConfirm = false;
   }
 
-  async insertTInventory(inventoryInsertData: InventoryInsertModel[]) {
+  /**
+   * Insert inventory records for today. If idsToDelete is provided, only delete existing
+   * records for those M_INVENTORY_IDs; otherwise delete all records for today (legacy behaviour).
+   */
+  async insertTInventory(inventoryInsertData: InventoryInsertModel[], idsToDelete?: any[]) {
     const today = this.getDate();
 
-    // First, delete existing records for today
-    const {error: deleteError} = await this.supabase
-      .from('T_INVENTORY')
-      .delete()
-      .gte('CREATED_DATETIME', `${today}T00:00:00`)
-      .lte('CREATED_DATETIME', `${today}T23:59:59`);
+    // First, delete existing records for today for the provided IDs (or all if none provided)
+    let deleteQuery = this.supabase.from('T_INVENTORY').delete();
+    if (Array.isArray(idsToDelete) && idsToDelete.length > 0) {
+      deleteQuery = deleteQuery.in('M_INVENTORY_ID', idsToDelete);
+    }
+    deleteQuery = deleteQuery.gte('CREATED_DATETIME', `${today}T00:00:00`).lte('CREATED_DATETIME', `${today}T23:59:59`);
 
+    const {error: deleteError} = await deleteQuery;
     if (deleteError) throw deleteError;
 
-    // Then insert new records with current datetime
+    // Then insert new records with current datetime for the provided data
     const dataWithDateTime = inventoryInsertData.map(item => ({
       ...item,
       CREATED_DATETIME: new Date().toISOString()

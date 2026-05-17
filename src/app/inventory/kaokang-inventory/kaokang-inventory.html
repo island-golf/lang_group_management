@@ -98,7 +98,7 @@
                   <label class="block text-sm font-medium text-gray-300 mb-2">หมายเหตุ (Remark)</label>
                   <textarea
                     formControlName="remark"
-                    rows="10"
+                    rows="20"
                     class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
                     placeholder="กรอกหมายเหตุสำหรับวันนี้..."></textarea>
                 </div>
@@ -141,32 +141,23 @@
           }
         }
 
-        <!-- Remark panel (separate) -->
-        @if (activeTabIndex === groupNames.length) {
-          <mat-card class="w-full p-6 sm:p-8 hover:shadow-2xl transition-shadow duration-300">
-            <div class="pt-2">
-              <div class="flex items-center justify-between mb-4">
-                <button type="button" (click)="activeTabIndex = -1" class="text-base text-blue-200 hover:text-white px-4 py-2 rounded-lg bg-white/5 font-medium">← กลับ</button>
-                <h3 class="text-lg font-semibold text-white">หมายเหตุ</h3>
-              </div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">หมายเหตุ (Remark)</label>
-              <textarea
-                formControlName="remark"
-                rows="10"
-                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                placeholder="กรอกหมายเหตุสำหรับวันนี้..."></textarea>
-            </div>
-          </mat-card>
-        }
+        <!-- remark is handled as a group panel via remarkGroupName inside the loop above -->
       </div>
 
       @if (activeTabIndex !== -1) {
         <div class="flex justify-center mt-6 sm:mt-8">
-          <button mat-raised-button
-                  type="submit"
-                  class="w-full sm:w-64 py-3 sm:py-4 text-base sm:text-lg font-bold bg-red-600 hover:bg-red-700 text-white hover:scale-105 transition-all duration-300 shadow-lg">
-            บันทึก
-          </button>
+            <button mat-raised-button
+                    type="submit"
+                    [disabled]="isLoading"
+                    [class.opacity-50]="isLoading"
+                    class="w-full sm:w-64 py-3 sm:py-4 text-base sm:text-lg font-bold bg-red-600 hover:bg-red-700 text-white hover:scale-105 transition-all duration-300 shadow-lg">
+              @if (isLoading) {
+                <span>กำลังบันทึก...</span>
+              }
+              @if (!isLoading) {
+                <span>บันทึก</span>
+              }
+            </button>
         </div>
       }
     </form>
