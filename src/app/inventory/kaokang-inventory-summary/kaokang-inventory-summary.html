@@ -32,11 +32,11 @@
   </div>
 
   <!-- Tab Navigation -->
-  <div class="mt-6 flex gap-2 sm:gap-3 justify-center px-4 sm:px-0 max-w-sm sm:max-w-md lg:max-w-lg mx-auto">
+  <div class="mt-6 flex gap-2 sm:gap-4 justify-center px-2 sm:px-0 max-w-xl sm:max-w-2xl lg:max-w-4xl mx-auto">
     <button
       (click)="switchTab('needs-order')"
       [class.active]="activeTab === 'needs-order'"
-      class="flex-1 px-4 py-3 rounded-lg font-semibold text-sm sm:text-base transition-all duration-200"
+      class="flex-1 px-8 py-3 rounded-lg font-semibold text-sm sm:text-base transition-all duration-200"
       [ngClass]="activeTab === 'needs-order' 
         ? 'bg-orange-500 text-white shadow-lg' 
         : 'bg-white/10 text-white/70 hover:bg-white/15'">
@@ -45,7 +45,7 @@
     <button
       (click)="switchTab('all-stock')"
       [class.active]="activeTab === 'all-stock'"
-      class="flex-1 px-4 py-3 rounded-lg font-semibold text-sm sm:text-base transition-all duration-200"
+      class="flex-1 px-8 py-3 rounded-lg font-semibold text-sm sm:text-base transition-all duration-200"
       [ngClass]="activeTab === 'all-stock' 
         ? 'bg-blue-500 text-white shadow-lg' 
         : 'bg-white/10 text-white/70 hover:bg-white/15'">
