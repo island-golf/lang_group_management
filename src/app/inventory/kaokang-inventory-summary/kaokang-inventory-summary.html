@@ -31,110 +31,188 @@
     </p>
   </div>
 
+  <!-- Tab Navigation -->
+  <div class="mt-6 flex gap-2 sm:gap-3 justify-center px-4 sm:px-0 max-w-sm sm:max-w-md lg:max-w-lg mx-auto">
+    <button
+      (click)="switchTab('needs-order')"
+      [class.active]="activeTab === 'needs-order'"
+      class="flex-1 px-4 py-3 rounded-lg font-semibold text-sm sm:text-base transition-all duration-200"
+      [ngClass]="activeTab === 'needs-order' 
+        ? 'bg-orange-500 text-white shadow-lg' 
+        : 'bg-white/10 text-white/70 hover:bg-white/15'">
+      รายการที่ต้องสั่ง
+    </button>
+    <button
+      (click)="switchTab('all-stock')"
+      [class.active]="activeTab === 'all-stock'"
+      class="flex-1 px-4 py-3 rounded-lg font-semibold text-sm sm:text-base transition-all duration-200"
+      [ngClass]="activeTab === 'all-stock' 
+        ? 'bg-blue-500 text-white shadow-lg' 
+        : 'bg-white/10 text-white/70 hover:bg-white/15'">
+      สต็อกทั้งหมด
+    </button>
+  </div>
+
   @if (isLoading) {
     <div class="flex justify-center items-center py-16">
       <div class="w-10 h-10 border-4 border-red-400 border-t-transparent rounded-full animate-spin"></div>
     </div>
-  } @else if (!hasItems) {
-    <div class="flex flex-col items-center gap-4 py-16 text-gray-400">
-      <svg class="w-16 h-16 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-      </svg>
-      <p class="text-lg font-medium text-green-400">สต็อกทุกรายการอยู่ในเกณฑ์ปกติ</p>
-    </div>
-  } @else {
+  } @else if (activeTab === 'needs-order') {
+    @if (!hasItems) {
+      <div class="flex flex-col items-center gap-4 py-16 text-gray-400">
+        <svg class="w-16 h-16 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        <p class="text-lg font-medium text-green-400">สต็อกทุกรายการอยู่ในเกณฑ์ปกติ</p>
+      </div>
+    } @else {
 
-    <!-- Section 1: รายการที่ต่ำกว่าเกณฑ์ -->
-<!--    <section class="mt-8 sm:mt-10 max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-4 sm:px-0 w-full">-->
-<!--      <h2 class="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">รายการที่ต่ำกว่าเกณฑ์</h2>-->
-<!--      @for (group of summaryGroups; track group.vendor_group) {-->
-<!--        <div class="mb-6">-->
-<!--          <h3 class="text-sm font-semibold text-red-300 uppercase tracking-wide mb-3">{{ group.vendor_group }}</h3>-->
-<!--          <div class="space-y-3">-->
-<!--            @for (item of group.items; track item.master_id) {-->
-<!--              <div class="bg-white/10 backdrop-blur-lg border border-red-400/40 rounded-xl p-4 sm:p-5 flex items-center justify-between gap-4">-->
-<!--                <div class="flex flex-col gap-1">-->
-<!--                  <span class="text-white font-semibold text-base sm:text-lg">{{ item.item_desc }}</span>-->
-<!--                  <span class="text-red-300 text-sm">ขั้นต่ำ: {{ item.default_amount }} {{ item.unit }}</span>-->
-<!--                </div>-->
-<!--                <div class="flex flex-col items-end gap-1">-->
-<!--                  <span class="text-2xl font-bold"-->
-<!--                    [ngClass]="item.actual_amount === 0 ? 'text-red-400' : 'text-yellow-400'">-->
-<!--                    {{ item.actual_amount }}-->
-<!--                  </span>-->
-<!--                  <span class="text-xs text-gray-400">จำนวนจริง</span>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            }-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      }-->
-<!--    </section>-->
-
-    <!-- Section 2: รายการที่ต้องสั่งเพิ่ม -->
-    <section class="mt-8 sm:mt-10 max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-4 sm:px-0 w-full pb-10">
-      <h2 class="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">รายการที่ต้องสั่งเพิ่ม</h2>
-      @for (group of summaryGroups; track group.vendor_group) {
-        <div class="mb-6">
-          <h3 class="text-sm font-semibold text-orange-300 uppercase tracking-wide mb-3">{{ group.vendor_group }}</h3>
-          <div class="bg-white/10 backdrop-blur-lg border border-orange-400/40 rounded-xl p-4 sm:p-6 space-y-3">
-            @for (item of group.items; track item.master_id) {
-              <div class="flex items-center gap-3">
-                <span class="text-white text-base sm:text-lg">
-                  {{ item.item_desc }} =
-                  <span class="font-bold text-orange-300"> {{ item.default_amount - item.actual_amount }} {{ item.unit }}</span>
-                </span>
-              </div>
-            }
-          </div>
-        </div>
-      }
-    </section>
-
-    <!-- Section 3: หมายเหตุ -->
-    @if (latestRemark || processedRemark) {
+      <!-- Section: รายการที่ต้องสั่งเพิ่ม -->
       <section class="mt-8 sm:mt-10 max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-4 sm:px-0 w-full pb-10">
-        <h2 class="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">หมายเหตุ</h2>
-
-        <!-- Typo Correction Toggle -->
-        @if (processedRemark) {
-          <div class="mb-4 flex items-center gap-3">
-            <input type="checkbox"
-                   [checked]="enableTypoCorrection"
-                   (change)="toggleTypoCorrection()"
-                   class="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-            <label for="typo-correction" class="text-white font-medium cursor-pointer select-none">
-              แก้ไขคำผิดภาษาไทย
-            </label>
-            @if (!spellChecker.isReady()) {
-              <span class="text-xs text-yellow-300">(พจนานุกรมไม่พร้อมใช้งาน)</span>
-            }
-          </div>
-        }
-
-        <!-- Original Remark -->
-        @if (latestRemark) {
-          <div class="mb-4">
-            <h3 class="text-lg font-semibold text-blue-300 mb-3">Original</h3>
-            <div class="bg-white/10 backdrop-blur-lg border border-blue-400/40 rounded-xl p-4 sm:p-6">
-              <p class="text-white text-base sm:text-lg leading-relaxed whitespace-pre-line">{{ latestRemark }}</p>
-            </div>
-          </div>
-        }
-
-        <!-- Processed Remark -->
-        @if (processedRemark) {
-          <div class="mb-4">
-            <h3 class="text-lg font-semibold text-green-300 mb-3">
-              {{ enableTypoCorrection ? 'Processed (แก้ไขคำผิด)' : 'Processed' }}
-            </h3>
-            <div class="bg-white/10 backdrop-blur-lg border border-green-400/40 rounded-xl p-4 sm:p-6">
-              <p class="text-white text-base sm:text-lg leading-relaxed whitespace-pre-line">{{ displayCorrectedRemark }}</p>
+        <h2 class="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">รายการที่ต้องสั่งเพิ่ม</h2>
+        @for (group of summaryGroups; track group.vendor_group) {
+          <div class="mb-6">
+            <h3 class="text-sm font-semibold text-orange-300 uppercase tracking-wide mb-3">{{ group.vendor_group }}</h3>
+            <div class="bg-white/10 backdrop-blur-lg border border-orange-400/40 rounded-xl p-4 sm:p-6 space-y-3">
+              @for (item of group.items; track item.master_id) {
+                <div class="flex items-center gap-3">
+                  <span class="text-white text-base sm:text-lg">
+                    {{ item.item_desc }} =
+                    <span class="font-bold text-orange-300"> {{ item.default_amount - item.actual_amount }} {{ item.unit }}</span>
+                  </span>
+                </div>
+              }
             </div>
           </div>
         }
       </section>
-    }
 
+      <!-- Section: หมายเหตุ -->
+      @if (latestRemark || processedRemark) {
+        <section class="mt-8 sm:mt-10 max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-4 sm:px-0 w-full pb-10">
+          <h2 class="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">หมายเหตุ</h2>
+
+          <!-- Typo Correction Toggle -->
+          @if (processedRemark) {
+            <div class="mb-4 flex items-center gap-3">
+              <input type="checkbox"
+                     [checked]="enableTypoCorrection"
+                     (change)="toggleTypoCorrection()"
+                     class="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+              <label for="typo-correction" class="text-white font-medium cursor-pointer select-none">
+                แก้ไขคำผิดภาษาไทย
+              </label>
+              @if (!spellChecker.isReady()) {
+                <span class="text-xs text-yellow-300">(พจนานุกรมไม่พร้อมใช้งาน)</span>
+              }
+            </div>
+          }
+
+          <!-- Original Remark -->
+          @if (latestRemark) {
+            <div class="mb-4">
+              <h3 class="text-lg font-semibold text-blue-300 mb-3">Original</h3>
+              <div class="bg-white/10 backdrop-blur-lg border border-blue-400/40 rounded-xl p-4 sm:p-6">
+                <p class="text-white text-base sm:text-lg leading-relaxed whitespace-pre-line">{{ latestRemark }}</p>
+              </div>
+            </div>
+          }
+
+          <!-- Processed Remark -->
+          @if (processedRemark) {
+            <div class="mb-4">
+              <h3 class="text-lg font-semibold text-green-300 mb-3">
+                {{ enableTypoCorrection ? 'Processed (แก้ไขคำผิด)' : 'Processed' }}
+              </h3>
+              <div class="bg-white/10 backdrop-blur-lg border border-green-400/40 rounded-xl p-4 sm:p-6">
+                <p class="text-white text-base sm:text-lg leading-relaxed whitespace-pre-line">{{ displayCorrectedRemark }}</p>
+              </div>
+            </div>
+          }
+        </section>
+      }
+    }
+  } @else if (activeTab === 'all-stock') {
+
+    <!-- All Stock Tab Content with Category Tabs -->
+    @if (allStockGroupList.length === 0) {
+      <div class="flex flex-col items-center gap-4 py-16 text-gray-400">
+        <svg class="w-16 h-16 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+        </svg>
+        <p class="text-lg font-medium">ไม่มีข้อมูลสต็อก</p>
+      </div>
+    } @else {
+      <section class="mt-8 sm:mt-10 max-w-full mx-auto px-4 sm:px-0 w-full pb-10">
+        <h2 class="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">สต็อกทั้งหมด</h2>
+
+        <!-- Category Tabs Navigation -->
+        <div class="flex gap-2 overflow-x-auto mb-6 pb-2">
+          @for (group of allStockGroupList; track group; let idx = $index) {
+            <button
+              (click)="selectedStockGroupIndex = idx"
+              [class.active]="selectedStockGroupIndex === idx"
+              class="px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap transition-all duration-200"
+              [ngClass]="selectedStockGroupIndex === idx
+                ? 'bg-blue-500 text-white shadow-lg'
+                : 'bg-white/10 text-white/70 hover:bg-white/15'">
+              {{ group }}
+            </button>
+          }
+        </div>
+
+        <!-- Items for Selected Group -->
+        @if (allStockGroups.get(allStockGroupList[selectedStockGroupIndex]); as groupItems) {
+          @if (groupItems.length === 0) {
+            <div class="text-center py-8 text-gray-400">
+              ไม่มีข้อมูลในกลุ่มนี้
+            </div>
+          } @else {
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              @for (item of groupItems; track item.master_id) {
+                <div class="bg-white/10 backdrop-blur-lg border rounded-xl p-4 sm:p-5 flex flex-col gap-3"
+                     [ngClass]="item.actual_amount < item.default_amount
+                       ? 'border-yellow-400/40'
+                       : 'border-green-400/40'">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex flex-col gap-1 flex-1">
+                      <span class="text-white font-semibold text-base">{{ item.item_desc }}</span>
+                      <span class="text-gray-400 text-xs">ขั้นต่ำ: {{ item.default_amount }} {{ item.unit }}</span>
+                    </div>
+                    <span class="text-2xl font-bold whitespace-nowrap"
+                          [ngClass]="item.actual_amount === 0
+                            ? 'text-red-400'
+                            : item.actual_amount < item.default_amount
+                              ? 'text-yellow-400'
+                              : 'text-green-400'">
+                      {{ item.actual_amount }}
+                    </span>
+                  </div>
+
+                  <!-- Status Bar -->
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      @if (item.default_amount > 0) {
+                        <div class="h-full rounded-full transition-all duration-300"
+                             [ngClass]="item.actual_amount === 0
+                               ? 'bg-red-500 w-0'
+                               : item.actual_amount >= item.default_amount
+                                 ? 'bg-green-500 w-full'
+                                 : 'bg-yellow-500'"
+                             [style.width.%]="Math.min((item.actual_amount / item.default_amount) * 100, 100)">
+                        </div>
+                      }
+                    </div>
+                    <span class="text-xs text-gray-400 whitespace-nowrap">
+                      {{ Math.round((item.actual_amount / (item.default_amount || 1)) * 100) }}%
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+      </section>
+    }
   }
 </div>

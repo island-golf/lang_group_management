@@ -1,4 +1,5 @@
 import {Component, OnInit} from '@angular/core';
+import {NgClass} from '@angular/common';
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import {SummaryGroup, SummaryItem} from '../kaokang-inventory/kaokang-inventory.model';
 import {ThaiSpellCheckerService} from '../../services/thai-spell-checker.service';
@@ -6,7 +7,7 @@ import {wordConfigs} from '../../config/remark-item-multiplier.config';
 
 @Component({
   selector: 'app-kaokang-inventory-summary',
-  imports: [],
+  imports: [NgClass],
   templateUrl: './kaokang-inventory-summary.html',
   standalone: true,
   styleUrl: './kaokang-inventory-summary.scss'
@@ -15,6 +16,10 @@ export class KaokangInventorySummary implements OnInit {
   private supabase: SupabaseClient;
 
   summaryGroups: SummaryGroup[] = [];
+  allStockItems: SummaryItem[] = [];
+  allStockGroups: Map<string, SummaryItem[]> = new Map();
+  allStockGroupList: string[] = [];
+  selectedStockGroupIndex: number = 0;
   isLoading = true;
   displayDate: string = '';
   lastUpdatedText: string = 'ยังไม่เคยอัปเดต';
@@ -22,6 +27,8 @@ export class KaokangInventorySummary implements OnInit {
   processedRemark: string = '';
   correctedRemark: string = '';
   enableTypoCorrection: boolean = true;
+  activeTab: 'needs-order' | 'all-stock' = 'needs-order';
+  Math = Math;
 
   constructor(public spellChecker: ThaiSpellCheckerService) {
     this.supabase = createClient(
@@ -123,6 +130,47 @@ export class KaokangInventorySummary implements OnInit {
       })
       .filter(item => item.actual_amount < item.default_amount);
 
+    // Store all stock items for the "all stock" tab
+    this.allStockItems = (masterData ?? [])
+      .map(master => {
+        const tran = tranData?.find(t => t.M_INVENTORY_ID === master.ID);
+        return {
+          master_id: master.ID,
+          item_desc: master.ITEM_DESC,
+          default_amount: master.DEFAULT_AMOUNT,
+          actual_amount: tran?.AMOUNT ?? 0,
+          unit: master.UNIT,
+          vendor_group: master.VENDOR_GROUP
+        };
+      })
+      .sort((a, b) => {
+        if (a.vendor_group !== b.vendor_group) {
+          if (a.vendor_group === '-') return 1;
+          if (b.vendor_group === '-') return -1;
+          return a.vendor_group.localeCompare(b.vendor_group, 'th');
+        }
+        return a.item_desc.localeCompare(b.item_desc, 'th');
+      });
+
+    // Organize all stock items by vendor group for tabs
+    this.allStockGroups.clear();
+    for (const item of this.allStockItems) {
+      if (!this.allStockGroups.has(item.vendor_group)) {
+        this.allStockGroups.set(item.vendor_group, []);
+      }
+      this.allStockGroups.get(item.vendor_group)!.push(item);
+    }
+
+    // Create sorted list of group names
+    this.allStockGroupList = Array.from(this.allStockGroups.keys())
+      .sort((a, b) => {
+        if (a === '-') return 1;
+        if (b === '-') return -1;
+        return a.localeCompare(b, 'th');
+      });
+
+    this.selectedStockGroupIndex = 0;
+
     const groupMap = new Map<string, SummaryItem[]>();
     const itemDescMap = new Map<string, SummaryItem>();
 
@@ -167,6 +215,10 @@ export class KaokangInventorySummary implements OnInit {
 
   get hasItems(): boolean {
     return this.summaryGroups.length > 0;
+  }
+
+  switchTab(tab: 'needs-order' | 'all-stock') {
+    this.activeTab = tab;
   }
 
   processRemark(remark: string): string {
