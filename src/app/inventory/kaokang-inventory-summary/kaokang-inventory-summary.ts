@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ChangeDetectionStrategy, OnDestroy, ChangeDetectorRef} from '@angular/core';
 import {NgClass} from '@angular/common';
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import {SummaryGroup, SummaryItem} from '../kaokang-inventory/kaokang-inventory.model';
@@ -10,10 +10,13 @@ import {wordConfigs} from '../../config/remark-item-multiplier.config';
   imports: [NgClass],
   templateUrl: './kaokang-inventory-summary.html',
   standalone: true,
-  styleUrl: './kaokang-inventory-summary.scss'
+  styleUrl: './kaokang-inventory-summary.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class KaokangInventorySummary implements OnInit {
+export class KaokangInventorySummary implements OnInit, OnDestroy {
   private supabase: SupabaseClient;
+  private readonly RICE_ITEM_NAME = 'ข้าวสาร';
+  private readonly RICE_MULTIPLIER = 5;
 
   summaryGroups: SummaryGroup[] = [];
   allStockItems: SummaryItem[] = [];
@@ -28,17 +31,40 @@ export class KaokangInventorySummary implements OnInit {
   correctedRemark: string = '';
   enableTypoCorrection: boolean = true;
   activeTab: 'needs-order' | 'all-stock' = 'needs-order';
-  Math = Math;
 
-  constructor(public spellChecker: ThaiSpellCheckerService) {
+  private readonly remarkPatterns = [
+    { pattern: /🔺[^🔺]*\d+\s*บาท/g, replacement: '' },
+    { pattern: /เมนูวัน.*/g, replacement: '' },
+    { pattern: /🔺/g, replacement: '' },
+    { pattern: /❌/g, replacement: '' },
+    { pattern: /\([^)]*\)/g, replacement: '' },
+    { pattern: /หมด|ขาด/g, replacement: '' }
+  ];
+
+  private readonly synonymMap = new Map<string, string>([['หมูบด', 'หมูสับ']]);
+  private readonly wordConfigMap: Map<string, any>;
+
+  constructor(
+    public spellChecker: ThaiSpellCheckerService,
+    private cdr: ChangeDetectorRef
+  ) {
     this.supabase = createClient(
       'https://batxjgnynvnykoingkij.supabase.co',
       'sb_publishable_UtUV7xSJeNC44WeOprBeDg_8tDWXA1w'
     );
+    // Pre-build Map for O(1) lookup instead of array iteration
+    this.wordConfigMap = new Map();
+    for (const config of wordConfigs) {
+      this.wordConfigMap.set(config.pattern, config);
+    }
   }
 
   async ngOnInit() {
     await this.loadSummary();
+  }
+
+  ngOnDestroy() {
+    // Cleanup if needed
   }
 
   async loadSummary() {
@@ -95,7 +121,7 @@ export class KaokangInventorySummary implements OnInit {
     const belowThreshold: SummaryItem[] = (masterData ?? [])
       .flatMap(master => {
         const tran = tranData?.find(t => t.M_INVENTORY_ID === master.ID);
-        const baseItem = {
+        const baseItem: SummaryItem = {
           master_id: master.ID,
           item_desc: master.ITEM_DESC,
           default_amount: master.DEFAULT_AMOUNT,
@@ -105,36 +131,37 @@ export class KaokangInventorySummary implements OnInit {
         };
 
         // Check if this is "ข้าวสาร" and needs to be split
-        if (master.ITEM_DESC === "ข้าวสาร" && baseItem.actual_amount < baseItem.default_amount) {
-          const calculatedAmount = (baseItem.default_amount - baseItem.actual_amount) * 5;
+        if (master.ITEM_DESC === this.RICE_ITEM_NAME && baseItem.actual_amount < baseItem.default_amount) {
+          const calculatedAmount = (baseItem.default_amount - baseItem.actual_amount) * this.RICE_MULTIPLIER;
 
-          console.log(`แยกรายการ ข้าวสาร: จำนวนที่ต้องสั่ง = ${calculatedAmount} หน่วย: ${baseItem.unit}`);
+          const riceItem1: SummaryItem = {
+            ...baseItem,
+            item_desc: "ข้าวสารตรามังกรทอง",
+            default_amount: calculatedAmount,
+            actual_amount: 0
+          };
+          this.calculateStockMetrics(riceItem1);
 
-          return [
-            {
-              ...baseItem,
-              item_desc: "ข้าวสารตรามังกรทอง",
-              default_amount: calculatedAmount,
-              actual_amount: 0
-            },
-            {
-              ...baseItem,
-              item_desc: "ข้าวสารตราบัวชมพู",
-              default_amount: calculatedAmount,
-              actual_amount: 0
-            }
-          ];
+          const riceItem2: SummaryItem = {
+            ...baseItem,
+            item_desc: "ข้าวสารตราบัวชมพู",
+            default_amount: calculatedAmount,
+            actual_amount: 0
+          };
+          this.calculateStockMetrics(riceItem2);
+
+          return [riceItem1, riceItem2];
         }
 
         return baseItem;
       })
       .filter(item => item.actual_amount < item.default_amount);
 
-    // Store all stock items for the "all stock" tab
+    // Store all stock items for the "all stock" tab - WITH pre-calculated metrics
     this.allStockItems = (masterData ?? [])
       .map(master => {
         const tran = tranData?.find(t => t.M_INVENTORY_ID === master.ID);
-        return {
+        const item: SummaryItem = {
           master_id: master.ID,
           item_desc: master.ITEM_DESC,
           default_amount: master.DEFAULT_AMOUNT,
@@ -142,6 +169,9 @@ export class KaokangInventorySummary implements OnInit {
           unit: master.UNIT,
           vendor_group: master.VENDOR_GROUP
         };
+        // Pre-calculate metrics for rendering
+        this.calculateStockMetrics(item);
+        return item;
       })
       .sort((a, b) => {
         if (a.vendor_group !== b.vendor_group) {
@@ -211,6 +241,9 @@ export class KaokangInventorySummary implements OnInit {
 
     this.lastUpdatedText = this.getThaiDateTimeForDate(new Date());
     this.isLoading = false;
+    
+    // Manually trigger change detection for OnPush strategy
+    this.cdr.markForCheck();
   }
 
   get hasItems(): boolean {
@@ -221,124 +254,99 @@ export class KaokangInventorySummary implements OnInit {
     this.activeTab = tab;
   }
 
+  private calculateStockMetrics(item: SummaryItem): void {
+    const percentage = item.default_amount > 0
+      ? Math.round((item.actual_amount / item.default_amount) * 100)
+      : 0;
+    
+    item.stockPercentage = Math.min(percentage, 100);
+    
+    if (item.actual_amount === 0) {
+      item.stockStatus = 'empty';
+      item.stockColor = 'text-red-400';
+    } else if (item.actual_amount < item.default_amount) {
+      item.stockStatus = 'low';
+      item.stockColor = 'text-yellow-400';
+    } else {
+      item.stockStatus = 'normal';
+      item.stockColor = 'text-green-400';
+    }
+  }
+
   processRemark(remark: string): string {
     if (!remark) return '';
 
+    // Apply all regex replacements in one pass
     let result = remark;
+    for (const {pattern, replacement} of this.remarkPatterns) {
+      result = result.replace(pattern, replacement);
+    }
 
-    // Remove patterns like "🔺**** (ตัวเลข) บาท"
-    result = result.replace(/🔺[^🔺]*\d+\s*บาท/g, '');
-
-    // Remove patterns like "เมนูวัน****"
-    result = result.replace(/เมนูวัน.*/g, '');
-
-    // Remove red triangle emoji
-    result = result.replace(/🔺/g, '');
-
-    // Remove cross mark emoji
-    result = result.replace(/❌/g, '');
-
-    // Remove text within parentheses
-    result = result.replace(/\([^)]*\)/g, '');
-
-    // Remove the words "หมด" and "ขาด"
-    result = result.replace(/หมด|ขาด/g, '');
-
-    // Replace "น่องไก่ทอด" with "ปีกบนไก่"
-    // result = result.replace(/น่องไก่ทอด/g, 'ปีกบนไก่');
-
-    // Replace "ลูกชิ้นหมู" with "ลูกชิ้นหมูผสมไก่"
+    // Replace known synonyms
     result = result.replace(/ลูกชิ้นหมู/g, 'ลูกชิ้นหมูผสมไก่');
 
-    // Count and replace words based on configuration
-    const wordCounts = new Map<string, number>();
+    // Count words with optimized O(1) lookup using wordConfigMap
     const words = result.split(/\s+/);
-
-    // Map synonyms to canonical patterns (use 'หมูสับ' for both 'หมูบด' and 'หมูสับ')
-    const synonymMap = new Map<string, string>([
-      ['หมูบด', 'หมูสับ']
-    ]);
+    const wordCounts = new Map<string, number>();
 
     for (const word of words) {
       const cleanWord = word.trim();
-      const canonical = synonymMap.get(cleanWord) ?? cleanWord;
-      for (const config of wordConfigs) {
-        if (canonical === config.pattern) {
-          wordCounts.set(config.pattern, (wordCounts.get(config.pattern) || 0) + 1);
-          break;
-        }
+      if (!cleanWord) continue;
+
+      const canonical = this.synonymMap.get(cleanWord) ?? cleanWord;
+      const config = this.wordConfigMap.get(canonical);
+      if (config) {
+        wordCounts.set(config.pattern, (wordCounts.get(config.pattern) || 0) + 1);
       }
     }
 
-    // Replace words with calculated format, but emit each calculated item only once
-    const originalWords = result.split(/\s+/);
+    // Replace words in single pass with tracking
     const emittedCalculated = new Set<string>();
-    result = originalWords.map(word => {
+    const processedWords = words.map(word => {
       const cleanWord = word.trim();
-      const canonical = synonymMap.get(cleanWord) ?? cleanWord;
-      for (const config of wordConfigs) {
-        if (canonical === config.pattern) {
-          // If we've already emitted the calculated value for this pattern,
-          // skip additional occurrences to avoid duplicates when count > 1
-          if (emittedCalculated.has(config.pattern)) {
-            return '';
-          }
-          emittedCalculated.add(config.pattern);
+      if (!cleanWord) return '';
 
-          const count = wordCounts.get(config.pattern) || 0;
-          const total = (count * config.multiplier).toFixed(1).replace(/\.0$/, '');
-          return `${config.pattern} = ${total} ${config.unit}`;
+      const canonical = this.synonymMap.get(cleanWord) ?? cleanWord;
+      const config = this.wordConfigMap.get(canonical);
+      
+      if (config) {
+        if (emittedCalculated.has(config.pattern)) {
+          return '';
         }
-      }
-      // Return the canonical form for synonyms (e.g. 'หมูบด' -> 'หมูสับ')
-      return canonical;
-    }).filter(w => w.length > 0).join(' ');
+        emittedCalculated.add(config.pattern);
 
-    // Split by lines and filter out empty lines
-    const lines = result.split('\n')
+        const count = wordCounts.get(config.pattern) || 0;
+        const total = (count * config.multiplier).toFixed(1).replace(/\.0$/, '');
+        return `${config.pattern} = ${total} ${config.unit}`;
+      }
+      return canonical;
+    }).filter(w => w.length > 0);
+
+    // Split lines and sort efficiently
+    const lines = processedWords.join(' ')
+      .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0);
 
-    // Sort lines to group "หมู" items together, then "ไก่" items, then others
-    const sortedLines = lines.sort((a, b) => {
-      const aHasPork = a.includes('หมู') && !a.includes('ลูกชิ้นหมู');
-      const bHasPork = b.includes('หมู') && !b.includes('ลูกชิ้นหมู');
-      const aHasChicken = a.includes('ไก่');
-      const bHasChicken = b.includes('ไก่');
+    const sortedLines = lines.sort(this.sortRemarkLines.bind(this));
 
-      // Priority: pork lines first, then chicken lines, then others
-      if (aHasPork && !bHasPork) return -1;
-      if (!aHasPork && bHasPork) return 1;
-
-      if (aHasChicken && !bHasChicken) return -1;
-      if (!aHasChicken && bHasChicken) return 1;
-
-      // If both have same keyword or neither has, keep original order
-      return 0;
-    });
-
-    // Split each line into separate items while keeping calculated amounts with their items
+    // Process lines with pre-built unit pattern
     const splitLines: string[] = [];
+    const allUnits = wordConfigs.map(config => config.unit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    const calculationRegex = new RegExp(`\\S+\\s*=\\s*\\d+\\.?\\d*\\s*(${allUnits})`, 'g');
+
     for (const line of sortedLines) {
-      // Create a single regex pattern that matches all units from config
-      const allUnits = wordConfigs.map(config => config.unit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-      const withCalculation = line.match(new RegExp(`\\S+\\s*=\\s*\\d+\\.?\\d*\\s*(${allUnits})`, 'g')) || [];
-
-      // Extract item names from calculations
-      withCalculation.map(calc => calc.split('=')[0].trim());
-
-      // Remove calculated items from the line to get standalone items
+      const withCalculation = line.match(calculationRegex) || [];
+      
       let remainingLine = line;
       for (const calc of withCalculation) {
         remainingLine = remainingLine.replace(calc, '');
       }
 
-      // Get standalone items (trim and filter empty)
       const standaloneItems = remainingLine.split(/\s+/)
         .map(item => item.trim())
         .filter(item => item.length > 0);
 
-      // Add all items to splitLines
       standaloneItems.forEach(item => splitLines.push(item));
       withCalculation.forEach(calc => splitLines.push(calc.trim()));
     }
@@ -384,6 +392,20 @@ export class KaokangInventorySummary implements OnInit {
     this.correctedRemark = this.enableTypoCorrection ?
       this.spellChecker.correctThaiTypos(this.processedRemark) :
       this.processedRemark;
+  }
+
+  private sortRemarkLines(a: string, b: string): number {
+    const aHasPork = a.includes('หมู') && !a.includes('ลูกชิ้นหมู');
+    const bHasPork = b.includes('หมู') && !b.includes('ลูกชิ้นหมู');
+    const aHasChicken = a.includes('ไก่');
+    const bHasChicken = b.includes('ไก่');
+
+    if (aHasPork && !bHasPork) return -1;
+    if (!aHasPork && bHasPork) return 1;
+    if (aHasChicken && !bHasChicken) return -1;
+    if (!aHasChicken && bHasChicken) return 1;
+
+    return 0;
   }
 
   get displayCorrectedRemark(): string {

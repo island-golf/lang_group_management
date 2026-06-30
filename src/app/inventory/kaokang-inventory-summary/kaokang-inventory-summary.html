@@ -179,12 +179,7 @@
                       <span class="text-white font-semibold text-base">{{ item.item_desc }}</span>
                       <span class="text-gray-400 text-xs">ขั้นต่ำ: {{ item.default_amount }} {{ item.unit }}</span>
                     </div>
-                    <span class="text-2xl font-bold whitespace-nowrap"
-                          [ngClass]="item.actual_amount === 0
-                            ? 'text-red-400'
-                            : item.actual_amount < item.default_amount
-                              ? 'text-yellow-400'
-                              : 'text-green-400'">
+                    <span class="text-2xl font-bold whitespace-nowrap" [ngClass]="item.stockColor">
                       {{ item.actual_amount }}
                     </span>
                   </div>
@@ -194,17 +189,17 @@
                     <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
                       @if (item.default_amount > 0) {
                         <div class="h-full rounded-full transition-all duration-300"
-                             [ngClass]="item.actual_amount === 0
+                             [ngClass]="item.stockStatus === 'empty'
                                ? 'bg-red-500 w-0'
-                               : item.actual_amount >= item.default_amount
+                               : item.stockStatus === 'normal'
                                  ? 'bg-green-500 w-full'
                                  : 'bg-yellow-500'"
-                             [style.width.%]="Math.min((item.actual_amount / item.default_amount) * 100, 100)">
+                             [style.width.%]="item.stockPercentage">
                         </div>
                       }
                     </div>
                     <span class="text-xs text-gray-400 whitespace-nowrap">
-                      {{ Math.round((item.actual_amount / (item.default_amount || 1)) * 100) }}%
+                      {{ item.stockPercentage }}%
                     </span>
                   </div>
                 </div>

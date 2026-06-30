@@ -20,6 +20,10 @@ export interface SummaryItem {
   actual_amount: number;
   unit: string;
   vendor_group: string;
+  // Pre-calculated values for performance
+  stockPercentage?: number;
+  stockStatus?: 'empty' | 'low' | 'normal';
+  stockColor?: string;
 }
 
 export interface SummaryGroup {
