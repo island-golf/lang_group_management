@@ -1,4 +1,4 @@
-<div class="flex-1 flex flex-col fade-in">
+<div class="flex-1 flex flex-col fade-in overflow-x-hidden">
   <header
     class="bg-gradient-to-r from-red-600 via-red-500 to-red-400 shadow-2xl px-4 sm:px-6 py-6 sm:py-8 rounded-2xl text-white">
     <div>
@@ -143,7 +143,7 @@
         <p class="text-lg font-medium">ไม่มีข้อมูลสต็อก</p>
       </div>
     } @else {
-      <section class="mt-8 sm:mt-10 max-w-full mx-auto px-4 sm:px-0 w-full pb-10">
+      <section class="mt-8 sm:mt-10 max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-4 sm:px-0 w-full pb-10">
         <h2 class="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">สต็อกทั้งหมด</h2>
 
         <!-- Category Tabs Navigation -->
@@ -168,18 +168,18 @@
               ไม่มีข้อมูลในกลุ่มนี้
             </div>
           } @else {
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
               @for (item of groupItems; track item.master_id) {
-                <div class="bg-white/10 backdrop-blur-lg border rounded-xl p-4 sm:p-5 flex flex-col gap-3"
+                <div class="bg-white/10 backdrop-blur-lg border rounded-xl p-4 sm:p-5 flex flex-col gap-3 min-w-0 w-full overflow-hidden"
                      [ngClass]="item.actual_amount < item.default_amount
                        ? 'border-yellow-400/40'
                        : 'border-green-400/40'">
-                  <div class="flex items-start justify-between gap-2">
-                    <div class="flex flex-col gap-1 flex-1">
-                      <span class="text-white font-semibold text-base">{{ item.item_desc }}</span>
+                  <div class="flex items-start justify-between gap-2 min-w-0">
+                    <div class="flex flex-col gap-1 flex-1 min-w-0">
+                      <span class="text-white font-semibold text-base truncate">{{ item.item_desc }}</span>
                       <span class="text-gray-400 text-xs">ขั้นต่ำ: {{ item.default_amount }} {{ item.unit }}</span>
                     </div>
-                    <span class="text-2xl font-bold whitespace-nowrap" [ngClass]="item.stockColor">
+                    <span class="text-2xl font-bold text-right" [ngClass]="item.stockColor" style="min-width:2.5rem;">
                       {{ item.actual_amount }}
                     </span>
                   </div>
@@ -198,7 +198,7 @@
                         </div>
                       }
                     </div>
-                    <span class="text-xs text-gray-400 whitespace-nowrap">
+                    <span class="text-xs text-gray-400">
                       {{ item.stockPercentage }}%
                     </span>
                   </div>
