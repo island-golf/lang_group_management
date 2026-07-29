@@ -4,6 +4,7 @@ import { RinnamchaInventory } from './inventory/rinnamcha-inventory/rinnamcha-in
 import { KaokangInventorySummary } from './inventory/kaokang-inventory-summary/kaokang-inventory-summary';
 import { RinnamchaInventorySummary } from './inventory/rinnamcha-inventory-summary/rinnamcha-inventory-summary';
 import { KaokangInventoryMaintenance } from './inventory/kaokang-inventory-maintenance/kaokang-inventory-maintenance';
+import { RinnamchaInventoryMaintenance } from './inventory/rinnamcha-inventory-maintenance/rinnamcha-inventory-maintenance';
 import { Dashboard } from './dashboard/dashboard';
 import { Login } from './login/login';
 import { Home } from './home/home';
@@ -20,5 +21,6 @@ export const routes: Routes = [
   { path: 'kaokang-inventory-summary', component: KaokangInventorySummary, canActivate: [authGuard] },
   { path: 'rinnamcha-inventory-summary', component: RinnamchaInventorySummary, canActivate: [authGuard] },
   { path: 'kaokang-inventory-maintenance', component: KaokangInventoryMaintenance, canActivate: [authGuard, adminGuard] },
+  { path: 'rinnamcha-inventory-maintenance', component: RinnamchaInventoryMaintenance, canActivate: [authGuard, adminGuard] },
   { path: '**', component: Login }
 ];

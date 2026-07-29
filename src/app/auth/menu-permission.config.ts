@@ -12,11 +12,12 @@ export interface MenuItem {
 /** รายการเมนูทั้งหมดในระบบ */
 export const ALL_MENUS: MenuItem[] = [
   { icon: '🏠', label: 'หน้าแรก',                  route: '/home' },
-  { icon: '📊', label: 'ระบบนับสต็อก',            route: '/kaokang-inventory' },
+  { icon: '📊', label: 'ระบบนับสต็อกข้าวแกงยายแลง',            route: '/kaokang-inventory' },
   { icon: '📊', label: 'ระบบนับสต็อกรินน้ำชา',     route: '/rinnamcha-inventory' },
-  { icon: '📋', label: 'สรุประบบสต็อก',          route: '/kaokang-inventory-summary' },
+  { icon: '📋', label: 'สรุประบบสต็อกข้าวแกงยายแลง',          route: '/kaokang-inventory-summary' },
   { icon: '📋', label: 'สรุปสต็อกรินน้ำชา',        route: '/rinnamcha-inventory-summary' },
-  { icon: '⚙️', label: 'จัดการข้อมูลสต็อก',      route: '/kaokang-inventory-maintenance' },
+  { icon: '⚙️', label: 'จัดการข้อมูลสต็อกข้าวแกงยายแลง',      route: '/kaokang-inventory-maintenance' },
+  { icon: '⚙️', label: 'จัดการข้อมูลสต็อกรินน้ำชา', route: '/rinnamcha-inventory-maintenance' },
 ];
 
 /**
@@ -36,6 +37,7 @@ const USER_MENU_PERMISSION: Record<string, string[]> = {
     '/kaokang-inventory-summary',
     '/rinnamcha-inventory-summary',
     '/kaokang-inventory-maintenance',
+    '/rinnamcha-inventory-maintenance',
   ],
   kaokang_user: [
     '/kaokang-inventory',

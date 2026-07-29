@@ -1,0 +1,188 @@
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-dialog {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.circle-anim {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 2;
+  stroke-miterlimit: 10;
+  stroke: #10b981;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.check-anim {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+// Material Design customizations
+.mat-mdc-form-field {
+  .mat-mdc-form-field-flex {
+    background-color: #374151;
+    border-radius: 0.5rem;
+  }
+}
+
+.mat-mdc-select-value,
+.mat-mdc-input-element {
+  color: white;
+}
+
+.mat-mdc-form-field-label {
+  color: #d1d5db;
+}
+
+.mat-mdc-select-arrow {
+  color: #d1d5db;
+}
+
+// Table styling
+.mat-mdc-table {
+  background-color: #1f2937;
+
+  .mat-mdc-header-cell {
+    background-color: #374151;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .mat-mdc-cell {
+    color: white;
+    border-bottom-color: #4b5563;
+  }
+
+  .mat-mdc-row:hover .mat-mdc-cell {
+    background-color: #374151;
+  }
+}
+
+// Card styling
+.mat-mdc-card {
+  background-color: #1f2937;
+  border: 1px solid #4b5563;
+}
+
+// Button styling
+.mat-mdc-button {
+  color: white;
+}
+
+.mat-mdc-raised-button {
+  background-color: #dc2626;
+
+  &:hover {
+    background-color: #b91c1c;
+  }
+
+  &:disabled {
+    background-color: #6b7280;
+    color: #9ca3af;
+  }
+}
+
+// Checkbox styling
+.mat-mdc-checkbox {
+  .mdc-checkbox__checkmark {
+    color: white;
+  }
+
+  .mdc-checkbox__native-control:checked + .mdc-checkbox__background {
+    background-color: #dc2626;
+    border-color: #dc2626;
+  }
+}
+
+// Form field outline
+.mat-mdc-form-field-appearance-outline {
+  .mat-mdc-form-field-outline {
+    color: #6b7280;
+  }
+
+  .mat-mdc-form-field-outline-thick {
+    color: #dc2626;
+  }
+
+  &.mat-focused .mat-mdc-form-field-outline-thick {
+    color: #dc2626;
+  }
+}
+
+// Tab group styling
+.inventory-tabs {
+  ::ng-deep .mat-mdc-tab-group {
+    background-color: #1f2937;
+  }
+
+  ::ng-deep .mat-mdc-tab-header {
+    background-color: #374151;
+    border-bottom: 1px solid #4b5563;
+  }
+
+  ::ng-deep .mat-mdc-tab {
+    color: #d1d5db;
+
+    &.mdc-tab--active {
+      color: white;
+      background-color: #4b5563;
+    }
+
+    &:hover:not(.mdc-tab--active) {
+      background-color: #4b5563;
+      color: white;
+    }
+  }
+
+  ::ng-deep .mat-mdc-ink-ripple {
+    color: #dc2626;
+  }
+
+  ::ng-deep .mat-mdc-tab-body-content {
+    background-color: #1f2937;
+    padding: 1rem;
+  }
+}
+
+// Responsive table
+@media (max-width: 768px) {
+  .mat-mdc-table {
+    font-size: 0.875rem;
+  }
+}
+
