@@ -222,7 +222,12 @@ export class RinnamchaInventory implements OnInit {
          this.groupsSavedToday.add(selectedGroup);
          this.cdr.markForCheck();
          this.showSuccess = true;
-         setTimeout(() => this.showSuccess = false, 2000);
+         setTimeout(() => {
+           this.showSuccess = false;
+           // Go back to group selection after success message disappears
+           this.activeTabIndex = -1;
+           this.cdr.markForCheck();
+         }, 2000);
          return;
        }
 
@@ -242,7 +247,12 @@ export class RinnamchaInventory implements OnInit {
         this.groupsSavedToday.add(selectedGroup);
         this.cdr.markForCheck();
         this.showSuccess = true;
-        setTimeout(() => this.showSuccess = false, 2000);
+        setTimeout(() => {
+          this.showSuccess = false;
+          // Go back to group selection after success message disappears
+          this.activeTabIndex = -1;
+          this.cdr.markForCheck();
+        }, 2000);
         return;
       }
 
@@ -259,7 +269,12 @@ export class RinnamchaInventory implements OnInit {
        // Only save remark when the remark panel is active. (Do not upsert remark when saving a group.)
        if (!inventoryResult) {
          this.showSuccess = true;
-         setTimeout(() => this.showSuccess = false, 2000);
+         setTimeout(() => {
+           this.showSuccess = false;
+           // Go back to group selection after success message disappears
+           this.activeTabIndex = -1;
+           this.cdr.markForCheck();
+         }, 2000);
        }
     } finally {
       this.isLoading = false;

@@ -216,15 +216,20 @@ export class KaokangInventory implements OnInit {
       const selectedGroup = this.groupNames[selectedIndex];
 
        if (selectedGroup === this.remarkGroupName) {
-         // Only save remark
-         await this.upsertRemark(remark);
-         // Mark remark group as saved
-         this.groupsSavedToday.add(selectedGroup);
-         this.cdr.markForCheck();
-         this.showSuccess = true;
-         setTimeout(() => this.showSuccess = false, 2000);
-         return;
-       }
+          // Only save remark
+          await this.upsertRemark(remark);
+          // Mark remark group as saved
+          this.groupsSavedToday.add(selectedGroup);
+          this.cdr.markForCheck();
+          this.showSuccess = true;
+          setTimeout(() => {
+            this.showSuccess = false;
+            // Go back to group selection after success message disappears
+            this.activeTabIndex = -1;
+            this.cdr.markForCheck();
+          }, 2000);
+          return;
+        }
 
       // For a specific group: build insert data only for inventory items that belong to this group
       const inventoryInsertData: InventoryInsertModel[] = this.inventories.controls
@@ -236,15 +241,20 @@ export class KaokangInventory implements OnInit {
         }));
 
        // If there are no items for this group, still upsert remark and show success
-       if (inventoryInsertData.length === 0) {
-         await this.upsertRemark(remark);
-         // Mark this group as saved even if no items were entered
-         this.groupsSavedToday.add(selectedGroup);
-         this.cdr.markForCheck();
-         this.showSuccess = true;
-         setTimeout(() => this.showSuccess = false, 2000);
-         return;
-       }
+        if (inventoryInsertData.length === 0) {
+          await this.upsertRemark(remark);
+          // Mark this group as saved even if no items were entered
+          this.groupsSavedToday.add(selectedGroup);
+          this.cdr.markForCheck();
+          this.showSuccess = true;
+          setTimeout(() => {
+            this.showSuccess = false;
+            // Go back to group selection after success message disappears
+            this.activeTabIndex = -1;
+            this.cdr.markForCheck();
+          }, 2000);
+          return;
+        }
 
       // Collect master ids to delete existing records for this group for today
       const idsToDelete = inventoryInsertData.map(i => i.M_INVENTORY_ID);
@@ -253,18 +263,23 @@ export class KaokangInventory implements OnInit {
        const inventoryResult = await this.insertTInventory(inventoryInsertData, idsToDelete);
 
        // Mark this group as saved
-       this.groupsSavedToday.add(selectedGroup);
-       this.cdr.markForCheck();
+        this.groupsSavedToday.add(selectedGroup);
+        this.cdr.markForCheck();
 
-       // Only save remark when the remark panel is active. (Do not upsert remark when saving a group.)
-       if (!inventoryResult) {
-         this.showSuccess = true;
-         setTimeout(() => this.showSuccess = false, 2000);
-       }
-    } finally {
-      this.isLoading = false;
-    }
-  }
+        // Only save remark when the remark panel is active. (Do not upsert remark when saving a group.)
+        if (!inventoryResult) {
+          this.showSuccess = true;
+          setTimeout(() => {
+            this.showSuccess = false;
+            // Go back to group selection after success message disappears
+            this.activeTabIndex = -1;
+            this.cdr.markForCheck();
+          }, 2000);
+        }
+     } finally {
+       this.isLoading = false;
+     }
+   }
 
   cancelSave() {
     this.showConfirm = false;
