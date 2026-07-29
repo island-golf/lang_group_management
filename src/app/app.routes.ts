@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { KaokangInventory } from './inventory/kaokang-inventory/kaokang-inventory';
+import { RinnamchaInventory } from './inventory/rinnamcha-inventory/rinnamcha-inventory';
 import { KaokangInventorySummary } from './inventory/kaokang-inventory-summary/kaokang-inventory-summary';
+import { RinnamchaInventorySummary } from './inventory/rinnamcha-inventory-summary/rinnamcha-inventory-summary';
 import { KaokangInventoryMaintenance } from './inventory/kaokang-inventory-maintenance/kaokang-inventory-maintenance';
 import { Dashboard } from './dashboard/dashboard';
 import { Login } from './login/login';
@@ -14,7 +16,9 @@ export const routes: Routes = [
   { path: 'home', component: Home, canActivate: [authGuard] },
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
   { path: 'kaokang-inventory', component: KaokangInventory, canActivate: [authGuard] },
+  { path: 'rinnamcha-inventory', component: RinnamchaInventory, canActivate: [authGuard] },
   { path: 'kaokang-inventory-summary', component: KaokangInventorySummary, canActivate: [authGuard] },
+  { path: 'rinnamcha-inventory-summary', component: RinnamchaInventorySummary, canActivate: [authGuard] },
   { path: 'kaokang-inventory-maintenance', component: KaokangInventoryMaintenance, canActivate: [authGuard, adminGuard] },
   { path: '**', component: Login }
 ];

@@ -43,12 +43,17 @@ export class SupabaseService {
     if (error) throw error;
   }
 
-  async loginUser(username: string): Promise<MUser | null> {
-    const { data, error } = await this.supabase
-      .from('M_USER')
-      .select('*')
-      .ilike('USERNAME', username.toLowerCase())
-      .maybeSingle();
+  async loginUser(username: string, password?: string): Promise<MUser | null> {
+    // Build base query
+    let query: any = this.supabase.from('M_USER').select('*');
+    // match username case-insensitively
+    query = query.ilike('USERNAME', username.toLowerCase());
+    // if password provided, match it as well (exact match)
+    if (password !== undefined && password !== null) {
+      query = query.eq('PASSWORD', password);
+    }
+    // expect zero or one row
+    const { data, error } = await query.maybeSingle();
     if (error) {
       console.error('loginUser error:', error);
       return null;

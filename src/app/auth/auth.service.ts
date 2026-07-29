@@ -67,9 +67,10 @@ export class AuthService {
     return this.currentUser() !== null;
   }
 
-  async login(username: string): Promise<{ success: boolean; error?: string }> {
+  async login(username: string, password?: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const user = await this.supabase.loginUser(username);
+      // Pass password along if provided; SupabaseService will handle matching
+      const user = await this.supabase.loginUser(username, password);
       if (user) {
         this.currentUser.set(user);
         if (this.isBrowser) {
@@ -79,7 +80,7 @@ export class AuthService {
         }
         return { success: true };
       }
-      return { success: false, error: 'ไม่พบชื่อผู้ใช้นี้ในระบบ' };
+      return { success: false, error: 'ไม่พบชื่อผู้ใช้นี้ในระบบ หรือรหัสผ่านไม่ถูกต้อง' };
     } catch (err: any) {
       return { success: false, error: err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' };
     }

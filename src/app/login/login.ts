@@ -12,6 +12,7 @@ import { AuthService } from '../auth/auth.service';
 })
 export class Login {
   username = '';
+  password = '';
   loading = signal(false);
   errorMessage = signal('');
 
@@ -29,9 +30,13 @@ export class Login {
       this.errorMessage.set('กรุณากรอกชื่อผู้ใช้');
       return;
     }
+    if (!this.password) {
+      this.errorMessage.set('กรุณากรอกรหัสผ่าน');
+      return;
+    }
     this.loading.set(true);
     this.errorMessage.set('');
-    const result = await this.auth.login(this.username.trim());
+    const result = await this.auth.login(this.username.trim(), this.password);
     this.loading.set(false);
     if (result.success) {
       this.router.navigate(['/home']);

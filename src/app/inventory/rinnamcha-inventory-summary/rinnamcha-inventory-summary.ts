@@ -1,19 +1,18 @@
 import {Component, OnInit, ChangeDetectionStrategy, OnDestroy, ChangeDetectorRef} from '@angular/core';
 import {NgClass} from '@angular/common';
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
-import {SummaryGroup, SummaryItem} from '../kaokang-inventory/kaokang-inventory.model';
+import {SummaryGroup, SummaryItem} from '../rinnamcha-inventory/rinnamcha-inventory.model';
 import {ThaiSpellCheckerService} from '../../services/thai-spell-checker.service';
-import {wordConfigs} from '../../config/remark-item-multiplier.config';
 
 @Component({
-  selector: 'app-kaokang-inventory-summary',
+  selector: 'app-rinnamcha-inventory-summary',
   imports: [NgClass],
-  templateUrl: './kaokang-inventory-summary.html',
+  templateUrl: './rinnamcha-inventory-summary.html',
   standalone: true,
-  styleUrl: './kaokang-inventory-summary.scss',
+  styleUrl: './rinnamcha-inventory-summary.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class KaokangInventorySummary implements OnInit, OnDestroy {
+export class RinnamchaInventorySummary implements OnInit, OnDestroy {
   private supabase: SupabaseClient;
   private readonly RICE_ITEM_NAME = 'ข้าวสาร';
   private readonly RICE_MULTIPLIER = 5;
@@ -27,22 +26,8 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
   displayDate: string = '';
   lastUpdatedText: string = 'ยังไม่เคยอัปเดต';
   latestRemark: string = '';
-  processedRemark: string = '';
-  correctedRemark: string = '';
-  enableTypoCorrection: boolean = true;
   activeTab: 'needs-order' | 'all-stock' | 'out-of-stock' = 'out-of-stock';
 
-  private readonly remarkPatterns = [
-    { pattern: /🔺[^🔺]*\d+\s*บาท/g, replacement: '' },
-    { pattern: /เมนูวัน.*/g, replacement: '' },
-    { pattern: /🔺/g, replacement: '' },
-    { pattern: /❌/g, replacement: '' },
-    { pattern: /\([^)]*\)/g, replacement: '' },
-    { pattern: /หมด|ขาด/g, replacement: '' }
-  ];
-
-  private readonly synonymMap = new Map<string, string>([['หมูบด', 'หมูสับ']]);
-  private readonly wordConfigMap: Map<string, any>;
 
   constructor(
     public spellChecker: ThaiSpellCheckerService,
@@ -52,11 +37,6 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
       'https://batxjgnynvnykoingkij.supabase.co',
       'sb_publishable_UtUV7xSJeNC44WeOprBeDg_8tDWXA1w'
     );
-    // Pre-build Map for O(1) lookup instead of array iteration
-    this.wordConfigMap = new Map();
-    for (const config of wordConfigs) {
-      this.wordConfigMap.set(config.pattern, config);
-    }
   }
 
   async ngOnInit() {
@@ -70,9 +50,9 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
   async loadSummary() {
     this.isLoading = true;
 
-    // Get the latest date with data in T_INVENTORY
+    // Get the latest date with data in T_INVENTORY_RINNAMCHA
     const { data: latestDateData, error: latestError } = await this.supabase
-      .from('T_INVENTORY')
+      .from('T_INVENTORY_RINNAMCHA')
       .select('CREATED_DATETIME')
       .order('CREATED_DATETIME', { ascending: false })
       .limit(1);
@@ -92,12 +72,12 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
     }
 
     const [{data: masterData, error: masterError}, {data: tranData, error: tranError}, {data: remarkData, error: remarkError}] = await Promise.all([
-      this.supabase.from('M_INVENTORY').select('ID, ITEM_DESC, DEFAULT_AMOUNT, UNIT, VENDOR_GROUP, ITEM_GROUP').eq('IS_ACTIVE_YN', 'Y').order('ITEM_GROUP').order('SEQ'),
-      this.supabase.from('T_INVENTORY')
-        .select('M_INVENTORY_ID, AMOUNT')
+      this.supabase.from('M_INVENTORY_RINNAMCHA').select('ID, ITEM_DESC, DEFAULT_AMOUNT, UNIT, VENDOR_GROUP, ITEM_GROUP').eq('IS_ACTIVE_YN', 'Y').order('ITEM_GROUP').order('SEQ'),
+      this.supabase.from('T_INVENTORY_RINNAMCHA')
+        .select('ID, AMOUNT')
         .gte('CREATED_DATETIME', `${latestDate}T00:00:00`)
         .lte('CREATED_DATETIME', `${latestDate}T23:59:59`),
-      this.supabase.from('T_INVENTORY_REMARK')
+      this.supabase.from('T_INVENTORY_RINNAMCHA_REMARK')
         .select('REMARK')
         .order('CREATED_DATETIME', { ascending: false })
         .limit(1)
@@ -110,17 +90,10 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
     // Set the latest remark
     this.latestRemark = remarkData && remarkData.length > 0 ? remarkData[0].REMARK : '';
 
-    // Process the remark to extract text after emojis (excluding red triangle)
-    this.processedRemark = this.processRemark(this.latestRemark);
-
-    // Apply Thai typo correction if enabled
-    this.correctedRemark = this.enableTypoCorrection ?
-      this.spellChecker.correctThaiTypos(this.processedRemark) :
-      this.processedRemark;
 
     const belowThreshold: SummaryItem[] = (masterData ?? [])
       .flatMap(master => {
-        const tran = tranData?.find(t => t.M_INVENTORY_ID === master.ID);
+        const tran = tranData?.find(t => t.ID === master.ID);
         const baseItem: SummaryItem = {
           master_id: master.ID,
           item_desc: master.ITEM_DESC,
@@ -160,7 +133,7 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
     // Store all stock items for the "all stock" tab - WITH pre-calculated metrics
     this.allStockItems = (masterData ?? [])
       .map(master => {
-        const tran = tranData?.find(t => t.M_INVENTORY_ID === master.ID);
+        const tran = tranData?.find(t => t.ID === master.ID);
         const item: SummaryItem = {
           master_id: master.ID,
           item_desc: master.ITEM_DESC,
@@ -285,87 +258,6 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
     }
   }
 
-  processRemark(remark: string): string {
-    if (!remark) return '';
-
-    // Apply all regex replacements in one pass
-    let result = remark;
-    for (const {pattern, replacement} of this.remarkPatterns) {
-      result = result.replace(pattern, replacement);
-    }
-
-    // Replace known synonyms
-    result = result.replace(/ลูกชิ้นหมู/g, 'ลูกชิ้นหมูผสมไก่');
-
-    // Count words with optimized O(1) lookup using wordConfigMap
-    const words = result.split(/\s+/);
-    const wordCounts = new Map<string, number>();
-
-    for (const word of words) {
-      const cleanWord = word.trim();
-      if (!cleanWord) continue;
-
-      const canonical = this.synonymMap.get(cleanWord) ?? cleanWord;
-      const config = this.wordConfigMap.get(canonical);
-      if (config) {
-        wordCounts.set(config.pattern, (wordCounts.get(config.pattern) || 0) + 1);
-      }
-    }
-
-    // Replace words in single pass with tracking
-    const emittedCalculated = new Set<string>();
-    const processedWords = words.map(word => {
-      const cleanWord = word.trim();
-      if (!cleanWord) return '';
-
-      const canonical = this.synonymMap.get(cleanWord) ?? cleanWord;
-      const config = this.wordConfigMap.get(canonical);
-
-      if (config) {
-        if (emittedCalculated.has(config.pattern)) {
-          return '';
-        }
-        emittedCalculated.add(config.pattern);
-
-        const count = wordCounts.get(config.pattern) || 0;
-        const total = (count * config.multiplier).toFixed(1).replace(/\.0$/, '');
-        return `${config.pattern} = ${total} ${config.unit}`;
-      }
-      return canonical;
-    }).filter(w => w.length > 0);
-
-    // Split lines and sort efficiently
-    const lines = processedWords.join(' ')
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-
-    const sortedLines = lines.sort(this.sortRemarkLines.bind(this));
-
-    // Process lines with pre-built unit pattern
-    const splitLines: string[] = [];
-    const allUnits = wordConfigs.map(config => config.unit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-    const calculationRegex = new RegExp(`\\S+\\s*=\\s*\\d+\\.?\\d*\\s*(${allUnits})`, 'g');
-
-    for (const line of sortedLines) {
-      const withCalculation = line.match(calculationRegex) || [];
-
-      let remainingLine = line;
-      for (const calc of withCalculation) {
-        remainingLine = remainingLine.replace(calc, '');
-      }
-
-      const standaloneItems = remainingLine.split(/\s+/)
-        .map(item => item.trim())
-        .filter(item => item.length > 0);
-
-      standaloneItems.forEach(item => splitLines.push(item));
-      withCalculation.forEach(calc => splitLines.push(calc.trim()));
-    }
-
-    return splitLines.join('\n');
-  }
-
   getDate(): string {
     const today = new Date();
     const day = String(today.getDate()).padStart(2, '0');
@@ -398,29 +290,5 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
 
     return `${day}/${month}/${yearBE} เวลา ${hours}:${minutes} น.`;
   }
-
-  toggleTypoCorrection() {
-    this.enableTypoCorrection = !this.enableTypoCorrection;
-    this.correctedRemark = this.enableTypoCorrection ?
-      this.spellChecker.correctThaiTypos(this.processedRemark) :
-      this.processedRemark;
-  }
-
-  private sortRemarkLines(a: string, b: string): number {
-    const aHasPork = a.includes('หมู') && !a.includes('ลูกชิ้นหมู');
-    const bHasPork = b.includes('หมู') && !b.includes('ลูกชิ้นหมู');
-    const aHasChicken = a.includes('ไก่');
-    const bHasChicken = b.includes('ไก่');
-
-    if (aHasPork && !bHasPork) return -1;
-    if (!aHasPork && bHasPork) return 1;
-    if (aHasChicken && !bHasChicken) return -1;
-    if (!aHasChicken && bHasChicken) return 1;
-
-    return 0;
-  }
-
-  get displayCorrectedRemark(): string {
-    return this.enableTypoCorrection ? this.correctedRemark : this.processedRemark;
-  }
 }
+
