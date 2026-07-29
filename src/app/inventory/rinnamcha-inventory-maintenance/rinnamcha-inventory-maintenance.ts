@@ -7,7 +7,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { AuthService } from '../../auth/auth.service';
 import { RinnamchaInventoryDialogComponent, MInventory } from './rinnamcha-inventory-dialog/rinnamcha-inventory-dialog';
-import { sortItemGroups } from '../../config/item-group-order.config';
+import { sortItemGroupsRinnamcha } from '../../config/item-group-order-rinnamcha.config';
 
 @Component({
   selector: 'app-rinnamcha-inventory-maintenance',
@@ -93,7 +93,7 @@ export class RinnamchaInventoryMaintenance implements OnInit {
     });
 
     // Sort groups using the config order
-    this.itemGroups = sortItemGroups(Object.keys(this.groupedItems));
+    this.itemGroups = sortItemGroupsRinnamcha(Object.keys(this.groupedItems));
 
     // Sort items within each group by SEQ
     this.itemGroups.forEach(group => {

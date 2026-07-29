@@ -6,7 +6,7 @@ import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import {InventoryInsertModel} from './rinnamcha-inventory.model';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {AuthService} from '../../auth/auth.service';
-import { sortItemGroups } from '../../config/item-group-order.config';
+import { sortItemGroupsRinnamcha } from '../../config/item-group-order-rinnamcha.config';
 
 @Component({
   selector: 'app-rinnamcha-inventory',
@@ -102,7 +102,7 @@ export class RinnamchaInventory implements OnInit {
       });
 
       // Sort groups using the config order
-      this.groupNames = sortItemGroups(this.groupNames);
+      this.groupNames = sortItemGroupsRinnamcha(this.groupNames);
 
       // Ensure remark group is present in the list so it appears as a selectable card
       if (!this.groupNames.includes(this.remarkGroupName)) {
