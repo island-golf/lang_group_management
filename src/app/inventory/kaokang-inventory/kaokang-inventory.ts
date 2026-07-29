@@ -1,6 +1,7 @@
-import {Component, ElementRef, OnInit, QueryList, ViewChildren, HostListener, ViewEncapsulation} from '@angular/core';
+import {Component, ElementRef, OnInit, QueryList, ViewChildren, HostListener, ViewEncapsulation, ChangeDetectorRef} from '@angular/core';
 import {MatButton} from '@angular/material/button';
 import {MatCard} from '@angular/material/card';
+import {CommonModule} from '@angular/common';
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import {InventoryInsertModel} from './kaokang-inventory.model';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
@@ -11,6 +12,7 @@ import { sortItemGroups } from '../../config/item-group-order.config';
   selector: 'app-kaokang-inventory',
   standalone: true,
   imports: [
+    CommonModule,
     MatButton,
     MatCard,
     ReactiveFormsModule,
@@ -41,8 +43,11 @@ export class KaokangInventory implements OnInit {
   itemGroups: { [key: string]: any[] } = {};
   groupNames: string[] = [];
 
+  // Track which groups have been saved today
+  groupsSavedToday: Set<string> = new Set();
 
-  constructor(private auth: AuthService) {
+
+  constructor(private auth: AuthService, private cdr: ChangeDetectorRef) {
     this.supabase = createClient(
       'https://batxjgnynvnykoingkij.supabase.co',
       'sb_publishable_UtUV7xSJeNC44WeOprBeDg_8tDWXA1w'
@@ -74,13 +79,12 @@ export class KaokangInventory implements OnInit {
 
   async getMasterInventory() {
     const {data, error} = await this.supabase
-      .from('M_INVENTORY') // ✅ T = table name, R = row type
+      .from('M_INVENTORY')
       .select(`
     ID,
     ITEM_DESC,
     ITEM_GROUP
   `).eq('IS_ACTIVE_YN', 'Y').order('ITEM_GROUP').order('SEQ');
-    console.log(data);
     if (error) throw error;
 
     if (data) {
@@ -119,32 +123,54 @@ export class KaokangInventory implements OnInit {
     return data;
   }
 
-  async getTransactionInventory() {
-    const today = this.getDate();
-    const {data, error} = await this.supabase
-      .from('T_INVENTORY')
-      .select(`
-        M_INVENTORY_ID,
-        AMOUNT,
-        M_INVENTORY!inner(
-          ITEM_GROUP
-        )
-      `)
-      .gte('CREATED_DATETIME', `${today}T00:00:00`)
-      .lte('CREATED_DATETIME', `${today}T23:59:59`);
-    console.log(data);
-    if (error) throw error;
+   async getTransactionInventory() {
+     const today = this.getDate();
+     const {data, error} = await this.supabase
+       .from('T_INVENTORY')
+       .select(`
+         M_INVENTORY_ID,
+         AMOUNT,
+         M_INVENTORY!inner(
+           ITEM_GROUP
+         )
+       `)
+       .gte('CREATED_DATETIME', `${today}T00:00:00`)
+       .lte('CREATED_DATETIME', `${today}T23:59:59`);
 
-    if (this.inventories.length > 0) {
-      this.inventories.controls.forEach(group => {
-        const transaction = data?.find((item: any) => item.M_INVENTORY_ID === group.get('master_id')?.value);
-        group.get('amount')?.setValue(transaction?.AMOUNT ?? null);
-      });
-    }
+     if (error) throw error;
 
-    // Get today's remark
-    await this.getTodayRemark();
-  }
+     if (this.inventories.length > 0) {
+       this.inventories.controls.forEach(group => {
+         const transaction = data?.find((item: any) => item.M_INVENTORY_ID === group.get('master_id')?.value);
+         group.get('amount')?.setValue(transaction?.AMOUNT ?? null);
+       });
+     }
+
+     // Track which groups have saved data for today
+     this.groupsSavedToday.clear();
+     if (data && Array.isArray(data) && data.length > 0) {
+       const groupsWithData = new Set<string>();
+       data.forEach((item: any) => {
+         let itemGroup: string | undefined;
+
+         if (Array.isArray(item.M_INVENTORY)) {
+           itemGroup = item.M_INVENTORY[0]?.ITEM_GROUP;
+         } else if (typeof item.M_INVENTORY === 'object' && item.M_INVENTORY !== null) {
+           itemGroup = item.M_INVENTORY.ITEM_GROUP;
+         }
+
+         const groupName = itemGroup || 'อื่นๆ';
+         groupsWithData.add(groupName);
+       });
+       groupsWithData.forEach(group => this.groupsSavedToday.add(group));
+     }
+
+     // Trigger change detection to update the UI
+     this.cdr.markForCheck();
+
+     // Get today's remark
+     await this.getTodayRemark();
+   }
 
   async getTodayRemark() {
     const today = this.getDate();
@@ -171,13 +197,12 @@ export class KaokangInventory implements OnInit {
     this.showConfirm = true;
   }
 
-  async confirmSave() {
-    this.showConfirm = false;
+   async confirmSave() {
+     this.showConfirm = false;
 
-    console.log(this.formGroup.value);
-    const formData = this.formGroup.value;
-    const remark = formData.remark || '';
-    const username = this.auth.currentUser()?.USERNAME || 'unknown';
+     const formData = this.formGroup.value;
+     const remark = formData.remark || '';
+     const username = this.auth.currentUser()?.USERNAME || 'unknown';
     // Determine which section is being saved (group or remark)
     const selectedIndex = this.activeTabIndex;
 
@@ -190,13 +215,16 @@ export class KaokangInventory implements OnInit {
 
       const selectedGroup = this.groupNames[selectedIndex];
 
-      if (selectedGroup === this.remarkGroupName) {
-        // Only save remark
-        await this.upsertRemark(remark);
-        this.showSuccess = true;
-        setTimeout(() => this.showSuccess = false, 2000);
-        return;
-      }
+       if (selectedGroup === this.remarkGroupName) {
+         // Only save remark
+         await this.upsertRemark(remark);
+         // Mark remark group as saved
+         this.groupsSavedToday.add(selectedGroup);
+         this.cdr.markForCheck();
+         this.showSuccess = true;
+         setTimeout(() => this.showSuccess = false, 2000);
+         return;
+       }
 
       // For a specific group: build insert data only for inventory items that belong to this group
       const inventoryInsertData: InventoryInsertModel[] = this.inventories.controls
@@ -207,25 +235,32 @@ export class KaokangInventory implements OnInit {
           CREATED_BY: username
         }));
 
-      // If there are no items for this group, still upsert remark and show success
-      if (inventoryInsertData.length === 0) {
-        await this.upsertRemark(remark);
-        this.showSuccess = true;
-        setTimeout(() => this.showSuccess = false, 2000);
-        return;
-      }
+       // If there are no items for this group, still upsert remark and show success
+       if (inventoryInsertData.length === 0) {
+         await this.upsertRemark(remark);
+         // Mark this group as saved even if no items were entered
+         this.groupsSavedToday.add(selectedGroup);
+         this.cdr.markForCheck();
+         this.showSuccess = true;
+         setTimeout(() => this.showSuccess = false, 2000);
+         return;
+       }
 
       // Collect master ids to delete existing records for this group for today
       const idsToDelete = inventoryInsertData.map(i => i.M_INVENTORY_ID);
 
-      // Delete & insert only for the selected group
-      const inventoryResult = await this.insertTInventory(inventoryInsertData, idsToDelete);
+       // Delete & insert only for the selected group
+       const inventoryResult = await this.insertTInventory(inventoryInsertData, idsToDelete);
 
-      // Only save remark when the remark panel is active. (Do not upsert remark when saving a group.)
-      if (!inventoryResult) {
-        this.showSuccess = true;
-        setTimeout(() => this.showSuccess = false, 2000);
-      }
+       // Mark this group as saved
+       this.groupsSavedToday.add(selectedGroup);
+       this.cdr.markForCheck();
+
+       // Only save remark when the remark panel is active. (Do not upsert remark when saving a group.)
+       if (!inventoryResult) {
+         this.showSuccess = true;
+         setTimeout(() => this.showSuccess = false, 2000);
+       }
     } finally {
       this.isLoading = false;
     }
@@ -309,11 +344,15 @@ export class KaokangInventory implements OnInit {
     return `${year}-${month}-${day}`; // 2025-09-11
   }
 
-  getInventoriesByGroup(groupName: string) {
-    return this.inventories.controls.filter(inv =>
-      inv.get('item_group')?.value === groupName
-    );
-  }
+   getInventoriesByGroup(groupName: string) {
+     return this.inventories.controls.filter(inv =>
+       inv.get('item_group')?.value === groupName
+     );
+   }
+
+   isGroupSavedToday(groupName: string): boolean {
+     return this.groupsSavedToday.has(groupName);
+   }
 
 
 
