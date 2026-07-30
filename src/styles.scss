@@ -16,20 +16,25 @@ html {
   ));
 }
 
+// Custom red and gold theme overrides
+:root {
+  --primary-red: #DC2626;
+  --primary-red-light: #EF4444;
+  --gold: #FFD700;
+  --gold-light: #FFED4A;
+}
+
 body {
   // Default the application to a light color theme. This can be changed to
   // `dark` to enable the dark color theme, or to `light dark` to defer to the
   // user's system settings.
-  color-scheme: dark;
+  color-scheme: light;
 
   // Set a default background, font and text colors for the application using
   // Angular Material's system-level CSS variables. Learn more about these
   // variables at https://material.angular.dev/guide/system-variables
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  background-attachment: fixed;
-  background-size: cover;
-  background-repeat: no-repeat;
-  color: white;
+  background: white;
+  color: #000000;
   font: var(--mat-sys-body-medium);
 
   // Reset the user agent margin.
@@ -80,20 +85,39 @@ input, select, textarea, label, button {
 
 .mat-mdc-card {
   backdrop-filter: blur(10px);
-  background: rgba(0, 0, 0, 0.8);
+  background: white;
+  border: 2px solid #FFD700;
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  color: white;
+  box-shadow: 0 8px 32px rgba(255, 0, 0, 0.1);
+  color: #000000;
 }
 
 .mat-mdc-button {
   border-radius: 12px;
   font-weight: 600;
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  color: white;
+  border: 1px solid #FFD700;
+}
+
+.mat-mdc-button:hover {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
 }
 
 .mat-mdc-form-field {
   margin-bottom: 16px;
   min-height: 56px;
+}
+
+.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  border: 1px solid #FFD700;
+  border-radius: 8px;
+}
+
+.mat-mdc-form-field:focus-within .mat-mdc-text-field-wrapper {
+  border-color: #DC2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
 }
 
 .sidebar-link {
@@ -102,7 +126,8 @@ input, select, textarea, label, button {
 
 .sidebar-link:hover {
   transform: translateX(5px);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(220, 38, 38, 0.1);
+  border-left: 3px solid #FFD700;
 }
 
 // Animations
@@ -151,12 +176,13 @@ input, select, textarea, label, button {
 }
 
 .inventory-item {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: white;
+  border: 1px solid #FFD700;
 }
 
 .inventory-item:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(220, 38, 38, 0.05);
+  border-color: #DC2626;
 }
 
 // Fix mat-tab label font (global) - using :global for Angular Material
@@ -250,5 +276,311 @@ h4, h5, h6 {
 .wide-dialog .mat-mdc-dialog-surface {
   width: 70vw !important;
   max-width: 90vw !important;
+}
+
+.mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  background: #2d2d2d;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+body:not(.dark-theme) .mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  background: white !important;
+  border: 2px solid #FFD700 !important;
+  box-shadow: 0 8px 32px rgba(220, 38, 38, 0.2) !important;
+}
+
+body:not(.dark-theme) .p-6 {
+  background: white !important;
+}
+
+body:not(.dark-theme) .max-h-\[calc\(100vh-4rem\)\] {
+  background: white !important;
+}
+
+body:not(.dark-theme) .bg-gray-700 {
+  background: white !important;
+  border: 1px solid #FFD700 !important;
+}
+
+.mat-mdc-tab-group .mat-mdc-tab-header {
+  border-bottom: 2px solid #FFD700;
+}
+
+.mat-mdc-tab-label-active {
+  color: #DC2626 !important;
+  border-bottom: 3px solid #DC2626;
+}
+
+/* Light mode overrides for Tailwind text colors */
+body:not(.dark-theme) .text-white {
+  color: #000000 !important;
+}
+
+body:not(.dark-theme) .text-blue-200 {
+  color: #1e40af !important;
+}
+
+body:not(.dark-theme) .text-blue-300 {
+  color: #1d4ed8 !important;
+}
+
+body:not(.dark-theme) .text-blue-400 {
+  color: #3b82f6 !important;
+}
+
+body:not(.dark-theme) .text-red-200 {
+  color: #991b1b !important;
+}
+
+body:not(.dark-theme) .text-red-300 {
+  color: #dc2626 !important;
+}
+
+body:not(.dark-theme) .text-red-400 {
+  color: #ef4444 !important;
+}
+
+body:not(.dark-theme) .text-orange-300 {
+  color: #ea580c !important;
+}
+
+body:not(.dark-theme) .text-green-300 {
+  color: #16a34a !important;
+}
+
+body:not(.dark-theme) .text-green-400 {
+  color: #22c55e !important;
+}
+
+body:not(.dark-theme) .text-yellow-300 {
+  color: #ca8a04 !important;
+}
+
+body:not(.dark-theme) .text-gray-400 {
+  color: #4b5563 !important;
+}
+
+body:not(.dark-theme) .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+body:not(.dark-theme) .text-gray-800 {
+  color: #1f2937 !important;
+}
+
+body:not(.dark-theme) .text-green-200 {
+  color: #16a34a !important;
+}
+
+body:not(.dark-theme) .text-gray-300 {
+  color: #000000 !important;
+}
+
+body:not(.dark-theme) .text-gray-400 {
+  color: #4b5563 !important;
+}
+
+/* Light mode background overrides */
+body:not(.dark-theme) .bg-white\/10 {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid #FFD700;
+}
+
+body:not(.dark-theme) .bg-white\/20 {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid #FFD700;
+}
+
+body:not(.dark-theme) .bg-gray-700 {
+  background: rgba(220, 38, 38, 0.1) !important;
+  border: 1px solid #FFD700;
+}
+
+body:not(.dark-theme) .bg-gray-600 {
+  background: rgba(220, 38, 38, 0.15) !important;
+  border: 1px solid #FFD700;
+}
+
+body:not(.dark-theme) .bg-gray-200 {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid #FFD700;
+}
+
+body:not(.dark-theme) .bg-gray-300 {
+  background: rgba(220, 38, 38, 0.1) !important;
+  border: 1px solid #FFD700;
+}
+
+/* Light mode border overrides */
+body:not(.dark-theme) .border-white\/20 {
+  border-color: #FFD700 !important;
+}
+
+body:not(.dark-theme) .border-white\/30 {
+  border-color: #FFD700 !important;
+}
+
+body:not(.dark-theme) .border-gray-600 {
+  border-color: #FFD700 !important;
+}
+
+body:not(.dark-theme) .border-gray-500 {
+  border-color: #FFD700 !important;
+}
+
+/* Light mode placeholder overrides */
+body:not(.dark-theme) .placeholder-blue-300\/60 {
+  color: #1e40af !important;
+  opacity: 0.6;
+}
+
+body:not(.dark-theme) .placeholder-gray-400 {
+  color: #4b5563 !important;
+}
+
+/* Light mode button overrides */
+body:not(.dark-theme) .bg-red-500 {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%) !important;
+}
+
+body:not(.dark-theme) .\!bg-red-600 {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%) !important;
+}
+
+body:not(.dark-theme) .\!hover\:bg-red-700:hover {
+  background: linear-gradient(135deg, #B91C1C 0%, #991B1B 100%) !important;
+}
+
+body:not(.dark-theme) .bg-orange-500 {
+  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%) !important;
+}
+
+body:not(.dark-theme) .bg-blue-500 {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+}
+
+body:not(.dark-theme) .bg-blue-600 {
+  background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
+}
+
+body:not(.dark-theme) .bg-blue-700 {
+  background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%) !important;
+}
+
+body:not(.dark-theme) .bg-red-500\/20 {
+  background: rgba(220, 38, 38, 0.2) !important;
+  border: 1px solid #FFD700;
+}
+
+body:not(.dark-theme) .bg-blue-500\/20 {
+  background: rgba(220, 38, 38, 0.2) !important;
+  border: 1px solid #FFD700;
+}
+
+/* Light mode hover states */
+body:not(.dark-theme) .hover\:bg-white\/15:hover {
+  background: rgba(220, 38, 38, 0.1) !important;
+}
+
+body:not(.dark-theme) .hover\:bg-white\/20:hover {
+  background: rgba(220, 38, 38, 0.15) !important;
+}
+
+body:not(.dark-theme) .hover\:bg-gray-300:hover {
+  background: rgba(220, 38, 38, 0.15) !important;
+}
+
+/* Light mode input styling */
+body:not(.dark-theme) input[type="text"],
+body:not(.dark-theme) input[type="password"],
+body:not(.dark-theme) input[type="number"] {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid #FFD700 !important;
+  color: #000000 !important;
+}
+
+body:not(.dark-theme) input[type="text"]:focus,
+body:not(.dark-theme) input[type="password"]:focus,
+body:not(.dark-theme) input[type="number"]:focus {
+  border-color: #DC2626 !important;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* Light mode label styling */
+body:not(.dark-theme) label {
+  color: #000000 !important;
+}
+
+/* Light mode border color overrides for specific colors */
+body:not(.dark-theme) .border-orange-400\/40 {
+  border-color: #EA580C !important;
+}
+
+body:not(.dark-theme) .border-red-400\/40 {
+  border-color: #DC2626 !important;
+}
+
+body:not(.dark-theme) .border-blue-400\/40 {
+  border-color: #2563EB !important;
+}
+
+body:not(.dark-theme) .border-green-400\/40 {
+  border-color: #22C55E !important;
+}
+
+body:not(.dark-theme) .border-yellow-400\/40 {
+  border-color: #CA8A04 !important;
+}
+
+/* Light mode text color overrides for specific colors */
+body:not(.dark-theme) .text-red-100\/80 {
+  color: #B91C1C !important;
+  opacity: 0.8;
+}
+
+body:not(.dark-theme) .text-white\/70 {
+  color: #000000 !important;
+  opacity: 0.7;
+}
+
+/* Light mode background gradient overrides */
+body:not(.dark-theme) .bg-gradient-to-r {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%) !important;
+}
+
+/* Light mode border overrides */
+body:not(.dark-theme) .border {
+  border-color: #FFD700 !important;
+}
+
+/* Light mode Angular Material table overrides */
+body:not(.dark-theme) .mat-mdc-table {
+  background: white !important;
+  color: #000000 !important;
+}
+
+body:not(.dark-theme) .mat-mdc-header-cell {
+  background: rgba(220, 38, 38, 0.1) !important;
+  color: #DC2626 !important;
+  border-bottom: 2px solid #FFD700 !important;
+}
+
+body:not(.dark-theme) .mat-mdc-cell {
+  color: #000000 !important;
+  border-bottom: 1px solid #FFD700 !important;
+}
+
+body:not(.dark-theme) .mat-mdc-row {
+  background: white !important;
+}
+
+body:not(.dark-theme) .mat-mdc-row:hover {
+  background: rgba(220, 38, 38, 0.05) !important;
+}
+
+body:not(.dark-theme) .mat-mdc-table .mat-mdc-row:hover .mat-mdc-cell {
+  background: rgba(220, 38, 38, 0.05) !important;
+  color: #000000 !important;
 }
 

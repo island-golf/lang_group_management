@@ -74,7 +74,7 @@ export class RinnamchaInventorySummary implements OnInit, OnDestroy {
     const [{data: masterData, error: masterError}, {data: tranData, error: tranError}, {data: remarkData, error: remarkError}] = await Promise.all([
       this.supabase.from('M_INVENTORY_RINNAMCHA').select('ID, ITEM_DESC, DEFAULT_AMOUNT, UNIT, VENDOR_GROUP, ITEM_GROUP').eq('IS_ACTIVE_YN', 'Y').order('ITEM_GROUP').order('SEQ'),
       this.supabase.from('T_INVENTORY_RINNAMCHA')
-        .select('ID, AMOUNT')
+        .select('M_INVENTORY_RINNAMCHA_ID, AMOUNT')
         .gte('CREATED_DATETIME', `${latestDate}T00:00:00`)
         .lte('CREATED_DATETIME', `${latestDate}T23:59:59`),
       this.supabase.from('T_INVENTORY_RINNAMCHA_REMARK')
@@ -93,7 +93,7 @@ export class RinnamchaInventorySummary implements OnInit, OnDestroy {
 
     const belowThreshold: SummaryItem[] = (masterData ?? [])
       .flatMap(master => {
-        const tran = tranData?.find(t => t.ID === master.ID);
+        const tran = tranData?.find(t => t.M_INVENTORY_RINNAMCHA_ID === master.ID);
         const baseItem: SummaryItem = {
           master_id: master.ID,
           item_desc: master.ITEM_DESC,
@@ -133,7 +133,7 @@ export class RinnamchaInventorySummary implements OnInit, OnDestroy {
     // Store all stock items for the "all stock" tab - WITH pre-calculated metrics
     this.allStockItems = (masterData ?? [])
       .map(master => {
-        const tran = tranData?.find(t => t.ID === master.ID);
+        const tran = tranData?.find(t => t.M_INVENTORY_RINNAMCHA_ID === master.ID);
         const item: SummaryItem = {
           master_id: master.ID,
           item_desc: master.ITEM_DESC,
