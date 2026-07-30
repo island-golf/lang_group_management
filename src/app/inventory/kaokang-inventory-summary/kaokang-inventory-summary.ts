@@ -30,7 +30,7 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
   processedRemark: string = '';
   correctedRemark: string = '';
   enableTypoCorrection: boolean = true;
-  activeTab: 'needs-order' | 'all-stock' | 'out-of-stock' = 'out-of-stock';
+  activeTab: 'needs-order' | 'all-stock' | 'out-of-stock' = 'needs-order';
 
   private readonly remarkPatterns = [
     { pattern: /🔺[^🔺]*\d+\s*บาท/g, replacement: '' },

@@ -82,15 +82,26 @@
         @for (group of summaryGroups; track group.vendor_group) {
           <div class="mb-6">
             <h3 class="text-sm font-semibold text-orange-300 uppercase tracking-wide mb-3">{{ group.vendor_group }}</h3>
-            <div class="bg-white/10 backdrop-blur-lg border border-orange-400/40 rounded-xl p-4 sm:p-6 space-y-3">
-              @for (item of group.items; track item.master_id) {
-                <div class="flex items-center gap-3">
-                  <span class="text-white text-base sm:text-lg">
-                    {{ item.item_desc }} =
-                    <span class="font-bold text-orange-300"> {{ item.default_amount - item.actual_amount }} {{ item.unit }}</span>
-                  </span>
-                </div>
-              }
+            <div class="grid grid-cols-[2fr_1fr] gap-4">
+              <!-- Column: To Order Amount -->
+              <div class="bg-white/10 backdrop-blur-lg border border-orange-400/40 rounded-xl p-4 sm:p-6 space-y-3">
+                <h4 class="text-sm font-semibold text-orange-300 uppercase">To Order</h4>
+                @for (item of group.items; track item.master_id) {
+                  <div class="flex flex-row gap-1">
+                    <span class="text-white text-sm sm:text-base">{{ item.item_desc }} = </span>
+                    <span class="font-bold text-orange-300 text-base">{{ item.default_amount - item.actual_amount }} {{ item.unit }}</span>
+                  </div>
+                }
+              </div>
+              <!-- Column: Current Amount -->
+              <div class="bg-white/10 backdrop-blur-lg border border-orange-400/40 rounded-xl p-4 sm:p-6 space-y-3">
+                <h4 class="text-sm font-semibold text-orange-300 uppercase">Current</h4>
+                @for (item of group.items; track item.master_id) {
+                  <div class="flex flex-col gap-1">
+                    <span class="font-bold text-orange-300 text-base">{{ item.actual_amount }} {{ item.unit }}</span>
+                  </div>
+                }
+              </div>
             </div>
           </div>
         }
@@ -158,15 +169,28 @@
         @for (group of outOfStockGroups; track group.vendor_group) {
           <div class="mb-6">
             <h3 class="text-sm font-semibold text-red-300 uppercase tracking-wide mb-3">{{ group.vendor_group }}</h3>
-            <div class="bg-white/10 backdrop-blur-lg border border-red-400/40 rounded-xl p-4 sm:p-6 space-y-3">
-              @for (item of group.items; track item.master_id) {
-                <div class="flex items-center gap-3">
-                  <span class="text-white text-base sm:text-lg">
-                    {{ item.item_desc }} =
-                    <span class="font-bold text-red-300"> {{ item.default_amount - item.actual_amount }} {{ item.unit }}</span>
-                  </span>
-                </div>
-              }
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Column: Current Amount -->
+              <div class="bg-white/10 backdrop-blur-lg border border-red-400/40 rounded-xl p-4 sm:p-6 space-y-3">
+                <h4 class="text-sm font-semibold text-red-300 uppercase">Current</h4>
+                @for (item of group.items; track item.master_id) {
+                  <div class="flex flex-col gap-1">
+                    <span class="text-white text-sm sm:text-base">{{ item.item_desc }}</span>
+                    <span class="font-bold text-red-300 text-base">{{ item.actual_amount }} {{ item.unit }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Column: To Order Amount -->
+              <div class="bg-white/10 backdrop-blur-lg border border-red-400/40 rounded-xl p-4 sm:p-6 space-y-3">
+                <h4 class="text-sm font-semibold text-red-300 uppercase">To Order</h4>
+                @for (item of group.items; track item.master_id) {
+                  <div class="flex flex-col gap-1">
+                    <span class="text-white text-sm sm:text-base">{{ item.item_desc }}</span>
+                    <span class="font-bold text-red-300 text-base">{{ item.default_amount - item.actual_amount }} {{ item.unit }}</span>
+                  </div>
+                }
+              </div>
             </div>
           </div>
         }

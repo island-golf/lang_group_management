@@ -26,7 +26,7 @@ export class RinnamchaInventorySummary implements OnInit, OnDestroy {
   displayDate: string = '';
   lastUpdatedText: string = 'ยังไม่เคยอัปเดต';
   latestRemark: string = '';
-  activeTab: 'needs-order' | 'all-stock' | 'out-of-stock' = 'out-of-stock';
+  activeTab: 'needs-order' | 'all-stock' | 'out-of-stock' = 'needs-order';
 
 
   constructor(
