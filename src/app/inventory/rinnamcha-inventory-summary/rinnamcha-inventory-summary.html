@@ -88,8 +88,7 @@
                 <h4 class="text-sm font-semibold text-orange-300 uppercase">To Order</h4>
                 @for (item of group.items; track item.master_id) {
                   <div class="flex flex-row gap-1 flex-nowrap">
-                    <span class="text-white text-sm sm:text-base whitespace-nowrap">{{ item.item_desc }} = </span>
-                    <span class="font-bold text-orange-300 text-base whitespace-nowrap">{{ item.default_amount - item.actual_amount }} {{ item.unit }}</span>
+                    <span class="text-white text-sm sm:text-base whitespace-nowrap">{{ item.item_desc }} = {{ item.default_amount - item.actual_amount }} {{ item.unit }}</span>
                   </div>
                 }
               </div>
