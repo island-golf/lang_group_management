@@ -36,6 +36,7 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
     { pattern: /🔺[^🔺]*\d+\s*บาท/g, replacement: '' },
     { pattern: /เมนูวัน.*/g, replacement: '' },
     { pattern: /🔺/g, replacement: '' },
+    { pattern: /✅/g, replacement: '' },
     { pattern: /❌/g, replacement: '' },
     { pattern: /\([^)]*\)/g, replacement: '' },
     { pattern: /หมด|ขาด/g, replacement: '' }
@@ -288,11 +289,37 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
   processRemark(remark: string): string {
     if (!remark) return '';
 
-    // Apply all regex replacements in one pass
-    let result = remark;
+    // Process each line separately to handle ❌ until \n
+    const lines = remark.split('\n');
+    const processedLines = lines
+      .map(line => {
+        // Check if line has '❌หมด' - remove '❌หมด' and keep the line
+        if (line.includes('❌หมด')) {
+          return line.replace('❌หมด', '');
+        }
+        // Detect ❌ and remove everything from start until ❌
+        const crossMarkIndex = line.indexOf('❌');
+        if (crossMarkIndex !== -1) {
+          return line.substring(crossMarkIndex + 1);
+        }
+        // If line doesn't have ❌, return null to filter it out
+        return null;
+      })
+      .filter((line): line is string => line !== null && line.trim().length > 0);
+
+    let result = processedLines.join('\n');
+
+    // Apply regex replacements (excluding ❌ and ขาด which are handled separately)
     for (const {pattern, replacement} of this.remarkPatterns) {
+      // Skip the ❌ and ขาด patterns since we handle them differently
+      if (pattern.toString().includes('❌') || pattern.toString().includes('ขาด')) {
+        continue;
+      }
       result = result.replace(pattern, replacement);
     }
+
+    // Remove 'ขาด' after line processing
+    result = result.replace(/ขาด/g, '');
 
     // Replace known synonyms
     result = result.replace(/ลูกชิ้นหมู/g, 'ลูกชิ้นหมูผสมไก่');
@@ -328,6 +355,12 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
         emittedCalculated.add(config.pattern);
 
         const count = wordCounts.get(config.pattern) || 0;
+
+        // Special handling for 'ไก่แกง' - show count instead of total
+        if (config.pattern === 'ไก่แกง') {
+          return `${config.pattern} ${config.multiplier} ${config.unit} ${count} ชุด`;
+        }
+
         const total = (count * config.multiplier).toFixed(1).replace(/\.0$/, '');
         return `${config.pattern} = ${total} ${config.unit}`;
       }
@@ -335,12 +368,12 @@ export class KaokangInventorySummary implements OnInit, OnDestroy {
     }).filter(w => w.length > 0);
 
     // Split lines and sort efficiently
-    const lines = processedWords.join(' ')
+    const finalLines = processedWords.join(' ')
       .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0);
 
-    const sortedLines = lines.sort(this.sortRemarkLines.bind(this));
+    const sortedLines = finalLines.sort(this.sortRemarkLines.bind(this));
 
     // Process lines with pre-built unit pattern
     const splitLines: string[] = [];

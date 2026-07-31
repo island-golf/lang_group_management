@@ -81,6 +81,8 @@ export class ThaiSpellCheckerService {
       'เทด': 'เทศ',
       'แครัอด': 'แครอท',
       'ลูกชิ้นปลากาย': 'ลูกชิ้นปลากราย',
+      'เมัด': 'เม็ด',
+      'ลูกฟัก': 'ฟักแก่',
       // Add more common corrections as needed
     };
 
