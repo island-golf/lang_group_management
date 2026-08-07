@@ -97,7 +97,7 @@
                 <h4 class="text-sm font-semibold text-orange-300 uppercase">Current</h4>
                 @for (item of group.items; track item.master_id) {
                   <div class="flex flex-col gap-1 flex-nowrap">
-                    <span class="font-bold text-orange-300 text-base whitespace-nowrap">{{ item.actual_amount }} {{ item.unit }}</span>
+                    <span class="font-bold text-orange-300 text-sm sm:text-base whitespace-nowrap">{{ item.actual_amount }} {{ item.unit }}</span>
                   </div>
                 }
               </div>
