@@ -53,7 +53,11 @@ const USER_MENU_PERMISSION: Record<string, string[]> = {
   tik: [
     '/home',
     '/rinnamcha-inventory',
-  ]
+  ],
+  lek: [
+    '/home',
+    '/kaokang-inventory',
+  ],
   // เพิ่ม user ใหม่ตรงนี้
 };
 
