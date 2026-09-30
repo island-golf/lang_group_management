@@ -50,7 +50,7 @@ const USER_MENU_PERMISSION: Record<string, string[]> = {
     '/home',
     '/kaokang-inventory',
   ],
-  lek: [
+  af: [
     '/home',
     '/kaokang-inventory',
   ],
